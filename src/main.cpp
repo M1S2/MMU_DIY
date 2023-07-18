@@ -166,8 +166,10 @@ void loop()
         }
     }
 
-    if (((millis() - startWakeTime) > WAKE_TIMER) && !isFilamentLoaded() &&
-         !isPrinting && (shr16_get_ena() != 111)) disableAllSteppers();
+    if (((millis() - startWakeTime) > WAKE_TIMER) && !isFilamentLoaded() && !isPrinting)
+    {
+        disableAllSteppers();
+    }
 }
 
 void process_commands(void)
@@ -269,8 +271,8 @@ void process_commands(void)
 //****************************************************************************************************
 void fixTheProblem(bool showPrevious) {
     engage_filament_pulley(false);                    // park the idler stepper motor
-    shr16_clr_ena(AX_SEL);                            // turn OFF the selector stepper motor
-    shr16_clr_ena(AX_IDL);                            // turn OFF the idler stepper motor
+    disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
+    disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
 
     inErrorState = true;
 
@@ -289,15 +291,15 @@ void fixTheProblem(bool showPrevious) {
                         }
                     } else moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]], false);
                     engage_filament_pulley(false);
-                    shr16_clr_ena(AX_SEL);                    
-                    shr16_clr_ena(AX_IDL);
+                    disableStepper(AX_SEL);                    
+                    disableStepper(AX_IDL);
                     break;
                 case ADC_Btn_Left:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
                     engage_filament_pulley(false);
-                    shr16_clr_ena(AX_SEL);                    
-                    shr16_clr_ena(AX_IDL);
+                    disableStepper(AX_SEL);                    
+                    disableStepper(AX_IDL);
                     break;
                 default:
                     break;
@@ -321,13 +323,13 @@ void fixTheProblem(bool showPrevious) {
                         }
                     } else moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
                     engage_filament_pulley(false);
-                    shr16_clr_ena(AX_IDL);
+                    disableStepper(AX_IDL);
                     break;
                 case ADC_Btn_Left:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
                     engage_filament_pulley(false);
-                    shr16_clr_ena(AX_IDL);
+                    disableStepper(AX_IDL);
                     break;
                 default:
                     break;
@@ -355,7 +357,7 @@ void fixTheProblem(bool showPrevious) {
 void fixSelCrash(void) {
 
     engage_filament_pulley(false);                    // park the idler stepper motor
-    shr16_clr_ena(AX_SEL);                            // turn OFF the selector stepper motor
+    disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
     inErrorState = true;
 
     while (ADC_Btn_Middle != buttonClicked()) {
@@ -374,7 +376,7 @@ void fixSelCrash(void) {
 
 void fixIdlCrash(void) {
 
-    shr16_clr_ena(AX_IDL);                            // turn OFF the idler stepper motor
+    disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
     inErrorState = true;
 
     while (ADC_Btn_Middle != buttonClicked()) {

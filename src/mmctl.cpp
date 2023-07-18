@@ -62,7 +62,7 @@ bool feed_filament(void)
                 _c++;
             }
         }
-        shr16_clr_ena(AX_PUL);
+        disableStepper(AX_PUL);
         engage_filament_pulley(false);
     } else {
         txPayload((unsigned char*)"Z1---");
@@ -150,7 +150,7 @@ void eject_filament(uint8_t extruder)
 
     // unpark idler so user can easily remove filament
     engage_filament_pulley(false);
-    shr16_clr_ena(AX_PUL);
+    disableStepper(AX_PUL);
 }
 
 void recover_after_eject()
@@ -254,7 +254,7 @@ void unload_filament_withSensor(uint8_t extruder)
         if (extruder != active_extruder) fixTheProblem(true);
         else fixTheProblem();
     }
-    shr16_clr_ena(AX_PUL);
+    disableStepper(AX_PUL);
     engage_filament_pulley(false);
 }
 
@@ -289,7 +289,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         }
     }
     
-    shr16_clr_ena(AX_PUL);
+    disableStepper(AX_PUL);
     engage_filament_pulley(false);
 }
 
@@ -312,10 +312,10 @@ void load_filament_into_extruder()
     move_pulley(170, filament_lookup_table[6][filament_type[active_extruder]]);
 
     move_pulley(820, filament_lookup_table[7][filament_type[active_extruder]]);
-    shr16_clr_ena(AX_PUL);
+    disableStepper(AX_PUL);
     engage_filament_pulley(false); // release contact with filament
 
-    shr16_clr_ena(AX_PUL);
+    disableStepper(AX_PUL);
 }
 
 /**
@@ -432,12 +432,12 @@ void mmctl_cut_filament(uint8_t _next_extruder)
     setSEL2pos(_next_extruder + cut_offset);
     engage_filament_pulley(true);
     moveSmooth(AX_PUL, pulCutStepsPre, filament_lookup_table[5][filament_type[_next_extruder]], 
-    false, false, GLOBAL_ACC_DEF_NORMAL);                                           // Set filament for the chop :)
+    false, false, GLOBAL_ACC);                                           // Set filament for the chop :)
     int _selector_steps = (selectorStepPositionsFromHome[activeSelPos - cut_offset] - selectorStepPositionsFromHome[activeSelPos]);
     moveSmooth(AX_SEL, _selector_steps, filament_lookup_table[0][filament_type[_next_extruder]],
-    false, false, GLOBAL_ACC_DEF_NORMAL);                                           // The CHOP!!
+    false, false, GLOBAL_ACC);                                           // The CHOP!!
     moveSmooth(AX_PUL, pulCutStepsPost, filament_lookup_table[5][filament_type[_next_extruder]], 
-    false, false, GLOBAL_ACC_DEF_NORMAL);                                           // re-park filament post chop
+    false, false, GLOBAL_ACC);                                           // re-park filament post chop
     engage_filament_pulley(false);
     homeSelectorSmooth();
     setSEL2pos(_next_extruder);

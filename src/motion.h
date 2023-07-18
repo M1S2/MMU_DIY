@@ -21,13 +21,15 @@ extern uint8_t idlSGFailCount;
 extern BowdenLength bowdenLength;
 extern uint16_t MAX_SPEED_SELECTOR;
 extern uint16_t MAX_SPEED_IDLER;
-extern uint32_t GLOBAL_ACC;
 enum MotReturn {MR_Success, MR_FailedAndRehomed, MR_Failed};
 
 bool move_idler(int mm, uint16_t speed = MAX_SPEED_IDLER);
 bool move_selector(int mm, uint16_t speed = MAX_SPEED_SELECTOR);
 void move_pulley(int mm, uint16_t speed = filament_lookup_table[0][0]);
+void enableAllSteppers(void);
 void disableAllSteppers(void);
+void enableStepper(int axis);
+void disableStepper(int axis);
 MotReturn homeSelectorSmooth();
 MotReturn homeIdlerSmooth(bool toLastFilament = false);
 

@@ -11,9 +11,8 @@
 // public variables:
 BowdenLength bowdenLength;
 uint16_t BOWDEN_LENGTH = bowdenLength.get();
-uint16_t MAX_SPEED_SELECTOR =  MAX_SPEED_SEL_DEF_STEALTH; // micro steps
-uint16_t MAX_SPEED_IDLER    =  MAX_SPEED_IDL_DEF_STEALTH; // micro steps
-uint32_t GLOBAL_ACC         =  GLOBAL_ACC_DEF_STEALTH; // micro steps / s²
+uint16_t MAX_SPEED_SELECTOR =  MAX_SPEED_SEL; // micro steps
+uint16_t MAX_SPEED_IDLER    =  MAX_SPEED_IDL; // micro steps
 int8_t filament_type[EXTRUDERS] = { 0, 0, 0, 0, 0};
 int filament_lookup_table[9][3] =
 {{TYPE_0_MAX_SPPED_PUL,               TYPE_1_MAX_SPPED_PUL,               TYPE_2_MAX_SPPED_PUL},
@@ -31,11 +30,7 @@ int filament_lookup_table[9][3] =
 const uint8_t IDLER_PARKING_STEPS = (355 / 2) + 40;      // 217
 const uint16_t EJECT_PULLEY_STEPS = 2000;
 
-#ifdef doublecutter
-const int selectorStepPositionsFromHome[EXTRUDERS+2] = {-3178, -2479, -1782, -1085, -387, -27, 0} ;
-#else
 const int selectorStepPositionsFromHome[EXTRUDERS+2] = {-3700, -3002, -2305, -1607, -910, -100, 0};
-#endif // doublecutter
 const int idlerStepPositionsFromHome[EXTRUDERS+1] = {-130, -485, -840, -1195, -1550, 0};
 
 uint8_t selSGFailCount = 0;
@@ -86,13 +81,7 @@ void move_pulley(int steps, uint16_t speed)
  */
 uint16_t set_idler_direction(int steps)
 {
-    if (steps < 0) {
-        steps = steps * -1;
-        shr16_write(shr16_v & ~SHR16_DIR_IDL);
-    } else {
-        shr16_write(shr16_v | SHR16_DIR_IDL);
-    }
-    return steps;
+    #warning No implementation. Delete this method.
 }
 
 /**
@@ -104,13 +93,7 @@ uint16_t set_idler_direction(int steps)
  */
 uint16_t set_selector_direction(int steps)
 {
-    if (steps < 0) {
-        steps = steps * -1;
-        shr16_write(shr16_v & ~SHR16_DIR_SEL);
-    } else {
-        shr16_write(shr16_v | SHR16_DIR_SEL);
-    }
-    return steps;
+    #warning No implementation. Delete this method.
 }
 
 /**
@@ -120,34 +103,64 @@ uint16_t set_selector_direction(int steps)
  */
 uint16_t set_pulley_direction(int steps)
 {
-    if (steps < 0) {
+    if (steps < 0)
+    {
         steps = steps * -1;
-        shr16_write(shr16_v | SHR16_DIR_PUL);
-    } else {
-        shr16_write(shr16_v & ~SHR16_DIR_PUL);
+        PIN_PUL_DIR_HIGH;
+    }
+    else
+    {
+        PIN_PUL_DIR_LOW;
     }
     return steps;
 }
 
-/**
- * @brief disableSteppers
- */
+void enableAllSteppers(void)
+{
+    PIN_PUL_EN_LOW;
+}
+
 void disableAllSteppers(void)
 {
-    shr16_clr_ena_all();
+    PIN_PUL_EN_HIGH;
     isHomed = false;
+}
+
+void enableStepper(int axis)
+{
+    switch (axis) 
+    {
+    case AX_PUL:
+        PIN_PUL_DIR_LOW;
+        break;
+    case AX_SEL:
+        break;
+    case AX_IDL:
+        break;
+    }
+}
+
+void disableStepper(int axis)
+{
+    switch (axis) 
+    {
+    case AX_PUL:
+        PIN_PUL_DIR_HIGH;
+        break;
+    case AX_SEL:
+        break;
+    case AX_IDL:
+        break;
+    }
 }
 
 MotReturn homeSelectorSmooth()
 {
-    uint32_t acc_backup = GLOBAL_ACC;
-    for (int c = 2; c > 0; c--) { // touch end 2 times
-        
+    for (int c = 2; c > 0; c--) // touch end 2 times
+    {
         #warning TODO: Implement homing
         //tmc2130_init(HOMING_MODE);  // trinamic, homing
-        GLOBAL_ACC = GLOBAL_ACC_DEF_NORMAL;
         moveSmooth(AX_SEL, 4000, 2000, false);
-        GLOBAL_ACC = acc_backup;
         //tmc2130_init(tmc2130_mode);  // trinamic, normal
         if (c > 1) moveSmooth(AX_SEL, -300, 2000, false);
     }
@@ -157,22 +170,20 @@ MotReturn homeSelectorSmooth()
 
 MotReturn homeIdlerSmooth(bool toLastFilament)
 {
-    uint32_t acc_backup = GLOBAL_ACC;
     moveSmooth(AX_IDL, -250, MAX_SPEED_IDLER, false);
-    for (uint8_t c = 2; c > 0; c--) { // touch end 2 times
-        
+    for (uint8_t c = 2; c > 0; c--) // touch end 2 times
+    {
         #warning TODO: Implement homing
         //tmc2130_init(HOMING_MODE);  // trinamic, homing
-        GLOBAL_ACC = GLOBAL_ACC_DEF_NORMAL;
         moveSmooth(AX_IDL, 2600, 6350, false, true);
         //tmc2130_init(tmc2130_mode);  // trinamic, homing
-        GLOBAL_ACC = acc_backup;
         if (c > 1) moveSmooth(AX_IDL, -600, MAX_SPEED_IDLER, false);
         delay(50);
     }
     isIdlerParked = false;
     activeIdlPos = EXTRUDERS;
-    if (toLastFilament) {
+    if (toLastFilament) 
+    {
         uint8_t filament = 0;
         FilamentLoaded::get(filament);
         active_extruder = filament;
@@ -196,7 +207,7 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
                      bool withStallDetection, float acc,
                      bool withFindaDetection, bool withIR_SENSORDetection)
 {
-    shr16_set_ena(axis);
+    enableStepper(axis);
     startWakeTime = millis();
     MotReturn ret = MR_Success;
     if (withFindaDetection or withIR_SENSORDetection) ret = MR_Failed;
@@ -207,19 +218,21 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
     int stepsDone = 0;
     int stepsLeft = 0;
 
-    switch (axis) {
-    case AX_PUL:
-        stepsLeft = set_pulley_direction(steps);
-        break;
-    case AX_IDL:
-        stepsLeft = set_idler_direction(steps);
-        break;
-    case AX_SEL:
-        stepsLeft = set_selector_direction(steps);
-        break;
+    switch (axis) 
+    {
+        case AX_PUL:
+            stepsLeft = set_pulley_direction(steps);
+            break;
+        case AX_IDL:
+            stepsLeft = set_idler_direction(steps);
+            break;
+        case AX_SEL:
+            stepsLeft = set_selector_direction(steps);
+            break;
     }
 
-    enum State {
+    enum State 
+    {
         Accelerate = 0,
         ConstVelocity = 1,
         Decelerate = 2,
@@ -227,18 +240,23 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
 
     State st = Accelerate;
 
-    while (stepsLeft) {
-        switch (axis) {
+    while (stepsLeft) 
+    {
+        switch (axis) 
+        {
         case AX_PUL:
-            PIN_STP_PUL_HIGH;
-            PIN_STP_PUL_LOW;
-            if (withFindaDetection && ( steps > 0 ) && isFilamentLoaded()) {
+            PIN_PUL_STP_HIGH;
+            PIN_PUL_STP_LOW;
+            if (withFindaDetection && ( steps > 0 ) && isFilamentLoaded()) 
+            {
               return MR_Success;
             }
-            if (withFindaDetection && ( steps < 0 ) && (isFilamentLoaded() == false)) {
+            if (withFindaDetection && ( steps < 0 ) && (isFilamentLoaded() == false)) 
+            {
               return MR_Success;
             }
-            if (withIR_SENSORDetection && IR_SENSOR) {
+            if (withIR_SENSORDetection && IR_SENSOR) 
+            {
                 IR_SENSOR = false;
                 return MR_Success;
             }
@@ -246,50 +264,10 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
         case AX_IDL:
             PIN_STP_IDL_HIGH;
             PIN_STP_IDL_LOW;
-
-            #warning TODO: No stall detection: could this be deleted?
-            #if false
-            if (withStallDetection && !digitalRead(A5)) { // stall detected
-                delay(50); // delay to release the stall detection
-                if (rehomeOnFail) {
-                    if (idlSGFailCount < 3) {
-                        idlSGFailCount++;
-                        set_idler_toLast_positions(active_extruder);
-                        return MR_FailedAndRehomed;
-                    } else {
-                      fixIdlCrash();
-                      return MR_FailedAndRehomed;
-                    }
-                } else {
-                  return MR_Failed;
-                }
-            }
-            #endif
-
             break;
         case AX_SEL:
             PIN_STP_SEL_HIGH;
-            PIN_STP_SEL_LOW;
-
-            #warning TODO: No stall detection: could this be deleted?
-            #if false
-            if (withStallDetection && !digitalRead(A4)) { // stall detected
-                delay(50); // delay to release the stall detection
-                if (rehomeOnFail) {
-                    if (selSGFailCount < 3) {
-                      selSGFailCount++;
-                      set_sel_toLast_positions(active_extruder);
-                      return MR_FailedAndRehomed;
-                    } else {
-                      fixSelCrash();
-                      return MR_FailedAndRehomed;
-                    }
-                } else {
-                  return MR_Failed;
-                }
-            }
-            #endif
-            
+            PIN_STP_SEL_LOW;            
             break;
         }
 
@@ -299,36 +277,44 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
         float dt = 1 / v;
         delayMicroseconds(1e6 * dt);
 
-        switch (st) {
+        switch (st) 
+        {
         case Accelerate:
             v += acc * dt;
-            if (v >= vMax) {
+            if (v >= vMax) 
+            {
                 accSteps = stepsDone;
                 st = ConstVelocity;
 
                 v = vMax;
-            } else if (stepsDone > stepsLeft) {
+            } 
+            else if (stepsDone > stepsLeft) 
+            {
                 accSteps = stepsDone;
                 st = Decelerate;
-
             }
             break;
-        case ConstVelocity: {
-            if (stepsLeft <= accSteps) {
+        case ConstVelocity: 
+        {
+            if (stepsLeft <= accSteps) 
+            {
                 st = Decelerate;
             }
         }
         break;
-        case Decelerate: {
+        case Decelerate: 
+        {
             v -= acc * dt;
-            if (v < v0) {
+            if (v < v0) 
+            {
                 v = v0;
             }
         }
         break;
         }
     }
-    switch (axis) {
+    switch (axis) 
+    {
     case AX_IDL:
         idlSGFailCount = 0;
         break;

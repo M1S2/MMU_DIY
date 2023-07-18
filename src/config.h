@@ -1,7 +1,5 @@
 // config.h - main configuration file
 
-#include "config_tzb.h"
-
 #define FW_VERSION  402 // example: 103 means version 1.0.3
 #define FW_BUILDNR  380 // number of commits in 'master'
 
@@ -22,66 +20,15 @@
 #define SHR16_LEDG4           0x0040
 #define SHR16_LEDR4           0x0080
 #define SHR16_LED_MSK         0xffc0
-// TMC2130 Direction/Enable signals - hardcoded
-#define SHR16_DIR_PUL          0x0001
-#define SHR16_ENA_PUL          0x0002
-#define SHR16_DIR_SEL          0x0004
-#define SHR16_ENA_SEL          0x0008
-#define SHR16_DIR_IDL          0x0010
-#define SHR16_ENA_IDL          0x0020
-#define SHR16_DIR_MSK        (SHR16_DIR_PUL + SHR16_DIR_SEL + SHR16_DIR_IDL)
-#define SHR16_ENA_MSK        (SHR16_ENA_PUL + SHR16_ENA_SEL + SHR16_ENA_IDL)
 
 // UART0 (USB)
 #define UART0_BDR 115200
 
-// TMC2130 - Trinamic stepper driver
-// pinout - hardcoded
-// spi:
-#define TMC2130_SPI_RATE 0 // fosc/4 = 4MHz
-#define TMC2130_SPCR SPI_SPCR(TMC2130_SPI_RATE, 1, 1, 1, 0)
-#define TMC2130_SPSR SPI_SPSR(TMC2130_SPI_RATE)
-
-// params:
-// SG_THR stallguard treshold (sensitivity), range -64..63
-// the stall guard value represents the load angle. if it reaches 0,
-// the motor stalls. It's a 10 bit value, with  1023 in idle load (theoretically)
-// According to the whole setup, that treshold should be tuned for accurate
-// stall detection.
-// Tuning: increase treshold, if stall detection triggers at normal loads
-//   decrese treshold, if stall detection triggers too late
-#define TMC2130_SG_THR_PUL 5
-#define TMC2130_SG_THR_SEL 5
-#define TMC2130_SG_THR_IDL 7
-#define TMC2130_SG_THR_HOM_IDL 5
-
-// TCOOLTHRS coolstep treshold, usable range 400-600, unit is 1/13MHz ~= 75ns
-// below that equivalent speed the stall detection is disabled
-#define TMC2130_TCOOLTHRS_AX_PUL 450
-#define TMC2130_TCOOLTHRS_AX_SEL 450
-#define TMC2130_TCOOLTHRS_AX_IDL 450
-
-// currents for pulley, selector and idler
-#define CURRENT_HOLDING_STEALTH         { 1,  7, 20}
-#define CURRENT_HOLDING_STEALTH_LOADING { 1,  7, 40}
-#define CURRENT_HOLDING_NORMAL          { 1,  7, 20}
-#define CURRENT_HOLDING_NORMAL_LOADING  { 1,  7, 40}
-#define CURRENT_RUNNING_STEALTH         {35, 35, 40}
-#define CURRENT_RUNNING_NORMAL          {30, 35, 40}
-#define CURRENT_HOMING                  { 1, 35, 40}
-
 // speeds and accelerations
-#define MAX_SPEED_SEL_DEF_NORMAL  6000 // micro steps
-#define MAX_SPEED_IDL_DEF_NORMAL  5000 // micro steps
-#define GLOBAL_ACC_DEF_NORMAL    80000 // micro steps / s²
-#define MAX_SPEED_SEL_DEF_STEALTH 2000 // micro steps
-#define MAX_SPEED_IDL_DEF_STEALTH 3000 // micro steps
-#define GLOBAL_ACC_DEF_STEALTH   30000 // micro steps / s²
+#define MAX_SPEED_SEL  6000 // micro steps
+#define MAX_SPEED_IDL  5000 // micro steps
+#define GLOBAL_ACC    80000 // micro steps / s²
 
-//mode
-#define HOMING_MODE 0
-#define NORMAL_MODE 1
-#define STEALTH_MODE 2
 
 //ADC configuration
 #define ADC_Btn_None      0
@@ -99,8 +46,13 @@
 #define PIN_STP_IDL_LOW (PORTD &= ~0x40)
 #define PIN_STP_SEL_HIGH (PORTD |= 0x10)
 #define PIN_STP_SEL_LOW (PORTD &= ~0x10)
-#define PIN_STP_PUL_HIGH (PORTB |= 0x10)
-#define PIN_STP_PUL_LOW (PORTB &= ~0x10)
+
+#define PIN_PUL_STP_HIGH (PORTD |= 0x10)        // Pin PD4
+#define PIN_PUL_STP_LOW (PORTD &= ~0x10)        // Pin PD4
+#define PIN_PUL_DIR_HIGH (PORTD |= 0x08)        // Pin PD3
+#define PIN_PUL_DIR_LOW (PORTD &= ~0x08)        // Pin PD3
+#define PIN_PUL_EN_HIGH (PORTD |= 0x04)         // Pin PD2
+#define PIN_PUL_EN_LOW (PORTD &= ~0x04)         // Pin PD2
 
 #define TOOLSYNC 100                         // number of tool change (T) commands before a selector resync is performed
 
