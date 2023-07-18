@@ -10,8 +10,6 @@ bool inErrorState = false;
 long startWakeTime;
 void process_commands(void);
 
-uint8_t tmc2130_mode = STEALTH_MODE;
-
 //! @brief Initialization after reset
 //!
 //! button | action
@@ -48,7 +46,7 @@ void setup()
     UCSR1B = (1 << RXEN1) | (1 << TXEN1) | (0 << UCSZ12);   // Turn on the transmission and reception circuitry
     UCSR1C = (0 << UMSEL11) | (0 << UMSEL10)| (0 << UPM11)
              | (0 << UPM10) | (1 << USBS1) | (1 << UCSZ11) | (1 << UCSZ10); // Use 8-bit character sizes
-    UCSR1D = (0 << CTSEN) | (0 << RTSEN); // Disable flow control
+    //UCSR1D = (0 << CTSEN) | (0 << RTSEN); // Disable flow control
     UBRR1H = (BAUD_PRESCALE >> 8); // Load upper 8-bits of the baud rate value into the high byte of the UBRR register
     UBRR1L = BAUD_PRESCALE; // Load lower 8-bits of the baud rate value into the low byte of the UBRR register
     UCSR1B |= (1 << RXCIE1);
@@ -64,7 +62,6 @@ void setup()
 
     shr16_clr_led();
     homeIdlerSmooth(true);
-    tmc2130_init(tmc2130_mode);
     if (active_extruder != EXTRUDERS) txPayload((unsigned char*)"STR--");
 }
 
@@ -231,32 +228,6 @@ void process_commands(void)
             unsigned char tempS3[5] = {'O','K',(uint8_t)active_extruder, BLK, BLK};
             txPayload(tempS3);
         }
-    } else if (tData1 == 'M') {
-            // Mx Modes CMD Received
-            // M0: set to normal mode; M1: set to stealth mode
-            uint8_t sysV = getMMU2S_System_Voltage();
-            // Only allow NORMAL mode if voltage is between 18v and 26v
-            if (tData2 == 0 && (sysV < 254 && sysV > 180)) {
-                filament_lookup_table[0][0] = TYPE_0_MAX_SPPED_PUL;
-                filament_lookup_table[0][1] = TYPE_1_MAX_SPPED_PUL;
-                filament_lookup_table[0][2] = TYPE_2_MAX_SPPED_PUL;
-                MAX_SPEED_IDLER = MAX_SPEED_IDL_DEF_NORMAL;
-                MAX_SPEED_SELECTOR = MAX_SPEED_SEL_DEF_NORMAL;
-                GLOBAL_ACC = GLOBAL_ACC_DEF_NORMAL;
-                tmc2130_mode =  NORMAL_MODE;
-            }
-            if (tData2 == 1) {
-                for (uint8_t i = 0; i < 3; i++)
-                    if (filament_lookup_table[0][i] > 1500) filament_lookup_table[0][i] = 1400;
-                MAX_SPEED_IDLER = MAX_SPEED_IDL_DEF_STEALTH;
-                MAX_SPEED_SELECTOR = MAX_SPEED_SEL_DEF_STEALTH;
-                GLOBAL_ACC = GLOBAL_ACC_DEF_STEALTH;
-                tmc2130_mode = STEALTH_MODE;
-            }
-            tmc2130_init(tmc2130_mode);
-            unsigned char tempOKM[5] = {'O','K','M', tData2, BLK};
-            txPayload(tempOKM);
-            return;
     } else if (tData1 == 'F') {
         // Fxy Filament Type Set CMD Received
         if ((tData2 < EXTRUDERS) && (tData3 < 3)) {
@@ -371,8 +342,10 @@ void fixTheProblem(bool showPrevious) {
         }
     }
     delay(100);
-    tmc2130_init_axis(AX_SEL, tmc2130_mode);           // turn ON the selector stepper motor
-    tmc2130_init_axis(AX_IDL, tmc2130_mode);           // turn ON the idler stepper motor
+    
+    #warning TODO: No TMC available!
+    //tmc2130_init_axis(AX_SEL, tmc2130_mode);           // turn ON the selector stepper motor
+    //tmc2130_init_axis(AX_IDL, tmc2130_mode);           // turn ON the idler stepper motor
     inErrorState = false;
     txPayload((unsigned char*)"ZZZ--"); // Clear MK3 Message
     home(true); // Home and return to previous active extruder

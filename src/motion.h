@@ -32,6 +32,6 @@ MotReturn homeSelectorSmooth();
 MotReturn homeIdlerSmooth(bool toLastFilament = false);
 
 MotReturn moveSmooth(uint8_t axis, int mm, int speed, bool rehomeOnFail = true,
-                     bool withStallDetection = true, float ACC = GLOBAL_ACC,
+                     bool withStallDetection = false, float ACC = GLOBAL_ACC,
                      bool withFindaDetection = false, bool withIR_SENSORDetection = false);
 #endif

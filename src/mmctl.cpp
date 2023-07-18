@@ -6,7 +6,6 @@
 #include <avr/io.h>
 #include "shr16.h"
 #include "spi.h"
-#include "tmc2130.h"
 #include "mmctl.h"
 #include "motion.h"
 #include "Buttons.h"
@@ -145,7 +144,6 @@ void eject_filament(uint8_t extruder)
     isEjected = true;
 
     engage_filament_pulley(true);
-    tmc2130_init_axis(AX_PUL, tmc2130_mode);
 
     // push filament forward
     move_pulley(EJECT_PULLEY_STEPS, filament_lookup_table[5][filament_type[active_extruder]]);
@@ -267,10 +265,7 @@ void unload_filament_withSensor(uint8_t extruder)
 void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
 {
     int unloadFINDACheckSteps = -3000;
-    if (isFilamentLoaded()) {
-        tmc2130_init_axis(AX_PUL, tmc2130_mode);
-        tmc2130_init_axis(AX_IDL, tmc2130_mode);
-        
+    if (isFilamentLoaded()) { 
         engage_filament_pulley(true); // get in contact with filament
         uint8_t mmPerSecSpeedUpper = (0xFF & ((filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio) >> 8));
         uint8_t mmPerSecSpeedLower = (0xFF & (filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio));
@@ -310,46 +305,16 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
  */
 void load_filament_into_extruder()
 {
-    uint8_t current_running_normal[3] = CURRENT_RUNNING_NORMAL;
-    uint8_t current_running_stealth[3] = CURRENT_RUNNING_STEALTH;
-    uint8_t current_holding_normal[3] = CURRENT_HOLDING_NORMAL;
-    uint8_t current_holding_stealth[3] = CURRENT_HOLDING_STEALTH;
-
     engage_filament_pulley(true); // get in contact with filament
 
-    tmc2130_init_axis(AX_PUL, tmc2130_mode);
     move_pulley(150, filament_lookup_table[6][filament_type[active_extruder]]);
 
-    // set current to 75%
-    if (tmc2130_mode == NORMAL_MODE) {
-        tmc2130_init_axis_current_normal(AX_PUL, current_holding_normal[AX_PUL],
-                                         current_running_normal[AX_PUL] - (current_running_normal[AX_PUL] / 4), false);
-    } else {
-        tmc2130_init_axis_current_stealth(AX_PUL, current_holding_stealth[AX_PUL],
-                                          current_running_stealth[AX_PUL] - (current_running_stealth[AX_PUL] / 4));
-    }
     move_pulley(170, filament_lookup_table[6][filament_type[active_extruder]]);
 
-    // set current to 50%
-    if (tmc2130_mode == NORMAL_MODE) {
-        tmc2130_init_axis_current_normal(AX_PUL, current_holding_normal[AX_PUL],
-                                         current_running_normal[AX_PUL] / 2, false);
-    } else {
-        tmc2130_init_axis_current_stealth(AX_PUL, current_holding_stealth[AX_PUL],
-                                          current_running_stealth[AX_PUL] / 2);
-    }
     move_pulley(820, filament_lookup_table[7][filament_type[active_extruder]]);
     shr16_clr_ena(AX_PUL);
     engage_filament_pulley(false); // release contact with filament
 
-    // reset currents
-    if (tmc2130_mode == NORMAL_MODE) {
-        tmc2130_init_axis_current_normal(AX_PUL, current_holding_normal[AX_PUL],
-                                         current_running_normal[AX_PUL], false);
-    } else {
-        tmc2130_init_axis_current_stealth(AX_PUL, current_holding_stealth[AX_PUL],
-                                          current_running_stealth[AX_PUL]);
-    }
     shr16_clr_ena(AX_PUL);
 }
 
@@ -363,15 +328,11 @@ void load_filament_into_extruder()
 void engage_filament_pulley(bool engage)
 {
     if (isIdlerParked && engage) { // get idler in contact with filament
-        isLoading = true;
-        tmc2130_init(tmc2130_mode);
         move_idler(IDLER_PARKING_STEPS);
         isIdlerParked = false;
     } else if (!isIdlerParked && !engage) { // park idler so filament can move freely
         move_idler(IDLER_PARKING_STEPS * -1);
         isIdlerParked = true;
-        isLoading = false;
-        tmc2130_init(tmc2130_mode);
     }
 }
 
@@ -470,7 +431,6 @@ void mmctl_cut_filament(uint8_t _next_extruder)
     else cut_offset = 2;
     setSEL2pos(_next_extruder + cut_offset);
     engage_filament_pulley(true);
-    if (!(tmc2130_mode == NORMAL_MODE)) tmc2130_init(NORMAL_MODE);                  // Set normal mode for cut
     moveSmooth(AX_PUL, pulCutStepsPre, filament_lookup_table[5][filament_type[_next_extruder]], 
     false, false, GLOBAL_ACC_DEF_NORMAL);                                           // Set filament for the chop :)
     int _selector_steps = (selectorStepPositionsFromHome[activeSelPos - cut_offset] - selectorStepPositionsFromHome[activeSelPos]);
@@ -479,7 +439,6 @@ void mmctl_cut_filament(uint8_t _next_extruder)
     moveSmooth(AX_PUL, pulCutStepsPost, filament_lookup_table[5][filament_type[_next_extruder]], 
     false, false, GLOBAL_ACC_DEF_NORMAL);                                           // re-park filament post chop
     engage_filament_pulley(false);
-    if (!(tmc2130_mode == NORMAL_MODE)) tmc2130_init(tmc2130_mode);
     homeSelectorSmooth();
     setSEL2pos(_next_extruder);
 }

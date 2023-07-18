@@ -3,7 +3,6 @@
 #include "Buttons.h"
 #include "main.h"
 #include "shr16.h"
-#include "tmc2130.h"
 #include "mmctl.h"
 #include "motion.h"
 #include "permanent_storage.h"
@@ -152,9 +151,6 @@ void settings_bowden_length()
     uint8_t tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
     unsigned char tempW[5] = {'W', tempBowLenUpper, tempBowLenLower, BLK, BLK};
     unsigned char tempV[5] = {0,0,0,BLK,BLK};
-    uint8_t current_running_normal[3] = CURRENT_RUNNING_NORMAL;
-    uint8_t current_holding_normal[3] = CURRENT_HOLDING_NORMAL;
-    uint8_t current_holding_loading[3] = CURRENT_HOLDING_NORMAL_LOADING;
     txPayload(tempW);
     do {
         delay(10);
@@ -171,11 +167,7 @@ void settings_bowden_length()
             case S::Extruded:
                 if (bowdenLength.increase())
                 {
-                    tmc2130_init_axis_current_normal(AX_IDL, current_holding_loading[AX_IDL],
-                                                    current_running_normal[AX_IDL], false);
                     move_pulley(bowdenLength.stepSize);
-                    tmc2130_init_axis_current_normal(AX_IDL, current_holding_normal[AX_IDL],
-                                                    current_running_normal[AX_IDL], false);
                     tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
                     tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
                     tempV[0] = 'V';
@@ -200,9 +192,6 @@ void settings_bowden_length()
                 tempV[2] = tempBowLenLower;
                 txPayload(tempV);
                 load_filament_withSensor(bowdenLength.m_length);
-                tmc2130_init_axis_current_normal(AX_IDL, current_holding_normal[AX_IDL],
-                                                current_running_normal[AX_IDL], false);
-                tmc2130_init_axis_current_normal(AX_PUL, 1, 30, false);
                 break;
             case S::Extruded:
                 state = S::NotExtruded;
@@ -214,8 +203,6 @@ void settings_bowden_length()
                 tempW[2] = tempBowLenLower;
                 txPayload(tempW);
                 delay(50);
-                tmc2130_init_axis_current_normal(AX_IDL, current_holding_loading[AX_IDL],
-                                                current_running_normal[AX_IDL], false);
                 unload_filament_forSetup(bowdenLength.m_length);
                 break;
             default:
@@ -229,11 +216,7 @@ void settings_bowden_length()
             case S::Extruded:
                 if (bowdenLength.decrease())
                 {
-                    tmc2130_init_axis_current_normal(AX_IDL, current_holding_loading[AX_IDL],
-                                                    current_running_normal[AX_IDL], false);
                     move_pulley(-bowdenLength.stepSize);
-                    tmc2130_init_axis_current_normal(AX_IDL, current_holding_normal[AX_IDL],
-                                                    current_running_normal[AX_IDL], false);
                     tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
                     tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
                     tempV[0] = 'V';

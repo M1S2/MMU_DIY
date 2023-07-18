@@ -1,6 +1,5 @@
 #include "motion.h"
 #include "shr16.h"
-#include "tmc2130.h"
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
@@ -53,14 +52,10 @@ static uint16_t set_pulley_direction(int steps);
  */
 bool move_idler(int steps, uint16_t speed)
 {
-    bool ret, isLoadingBackup = isLoading;
-    isLoading = true;
-    tmc2130_init(tmc2130_mode);
+    bool ret;
     if (speed > MAX_SPEED_IDLER) speed = MAX_SPEED_IDLER;
     if (moveSmooth(AX_IDL, steps, speed, true, true, GLOBAL_ACC) == MR_Failed) ret = false;
     else ret = true;
-    isLoading = isLoadingBackup;
-    tmc2130_init(tmc2130_mode);
     return ret;
 }
 
@@ -147,14 +142,15 @@ MotReturn homeSelectorSmooth()
 {
     uint32_t acc_backup = GLOBAL_ACC;
     for (int c = 2; c > 0; c--) { // touch end 2 times
-        tmc2130_init(HOMING_MODE);  // trinamic, homing
+        
+        #warning TODO: Implement homing
+        //tmc2130_init(HOMING_MODE);  // trinamic, homing
         GLOBAL_ACC = GLOBAL_ACC_DEF_NORMAL;
         moveSmooth(AX_SEL, 4000, 2000, false);
         GLOBAL_ACC = acc_backup;
-        tmc2130_init(tmc2130_mode);  // trinamic, normal
+        //tmc2130_init(tmc2130_mode);  // trinamic, normal
         if (c > 1) moveSmooth(AX_SEL, -300, 2000, false);
     }
-    tmc2130_init(tmc2130_mode);  // trinamic, homing
     activeSelPos = EXTRUDERS+1;
     return MR_Success;
 }
@@ -162,13 +158,14 @@ MotReturn homeSelectorSmooth()
 MotReturn homeIdlerSmooth(bool toLastFilament)
 {
     uint32_t acc_backup = GLOBAL_ACC;
-    tmc2130_init(tmc2130_mode);  // trinamic, normal
     moveSmooth(AX_IDL, -250, MAX_SPEED_IDLER, false);
     for (uint8_t c = 2; c > 0; c--) { // touch end 2 times
-        tmc2130_init(HOMING_MODE);  // trinamic, homing
+        
+        #warning TODO: Implement homing
+        //tmc2130_init(HOMING_MODE);  // trinamic, homing
         GLOBAL_ACC = GLOBAL_ACC_DEF_NORMAL;
         moveSmooth(AX_IDL, 2600, 6350, false, true);
-        tmc2130_init(tmc2130_mode);  // trinamic, homing
+        //tmc2130_init(tmc2130_mode);  // trinamic, homing
         GLOBAL_ACC = acc_backup;
         if (c > 1) moveSmooth(AX_IDL, -600, MAX_SPEED_IDLER, false);
         delay(50);
@@ -194,12 +191,11 @@ MotReturn homeIdlerSmooth(bool toLastFilament)
  *   in homing commands, to prevent endless loops and stack overflow.
  * @return
  */
+#warning TODO: Remove parameter withStallDetection
 MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
                      bool withStallDetection, float acc,
                      bool withFindaDetection, bool withIR_SENSORDetection)
 {
-    // if in stealth mode don't look for stallguard
-    if (tmc2130_mode == STEALTH_MODE) rehomeOnFail = false;
     shr16_set_ena(axis);
     startWakeTime = millis();
     MotReturn ret = MR_Success;
@@ -236,10 +232,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
         case AX_PUL:
             PIN_STP_PUL_HIGH;
             PIN_STP_PUL_LOW;
-            if (withStallDetection && !digitalRead(A3)) { // stall detected
-                delay(50); // delay to release the stall detection
-                return MR_Failed;
-            }
             if (withFindaDetection && ( steps > 0 ) && isFilamentLoaded()) {
               return MR_Success;
             }
@@ -254,6 +246,9 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
         case AX_IDL:
             PIN_STP_IDL_HIGH;
             PIN_STP_IDL_LOW;
+
+            #warning TODO: No stall detection: could this be deleted?
+            #if false
             if (withStallDetection && !digitalRead(A5)) { // stall detected
                 delay(50); // delay to release the stall detection
                 if (rehomeOnFail) {
@@ -269,10 +264,15 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
                   return MR_Failed;
                 }
             }
+            #endif
+
             break;
         case AX_SEL:
             PIN_STP_SEL_HIGH;
             PIN_STP_SEL_LOW;
+
+            #warning TODO: No stall detection: could this be deleted?
+            #if false
             if (withStallDetection && !digitalRead(A4)) { // stall detected
                 delay(50); // delay to release the stall detection
                 if (rehomeOnFail) {
@@ -288,6 +288,8 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
                   return MR_Failed;
                 }
             }
+            #endif
+            
             break;
         }
 

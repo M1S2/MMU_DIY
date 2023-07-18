@@ -8,7 +8,6 @@
 #include "shr16.h"
 #include "uart.h"
 #include "spi.h"
-#include "tmc2130.h"
 #include "mmctl.h"
 #include "motion.h"
 #include "Buttons.h"
@@ -31,7 +30,6 @@ void fixTheProblem(bool showPrevious = false);
 void fixSelCrash(void);
 void fixIdlCrash(void);
 
-extern uint8_t tmc2130_mode;
 extern long startWakeTime;
 
 typedef enum eFault {FAULT_IDLER_INIT_0, FAULT_IDLER_INIT_1, FAULT_IDLER_INIT_2,
