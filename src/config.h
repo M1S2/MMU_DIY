@@ -1,0 +1,171 @@
+// config.h - main configuration file
+
+#include "config_tzb.h"
+
+#define FW_VERSION  402 // example: 103 means version 1.0.3
+#define FW_BUILDNR  380 // number of commits in 'master'
+
+#define WAKE_TIMER            300000        // 5m
+
+//#define green_board
+
+// shift register outputs
+// LEDS - hardcoded
+#define SHR16_LEDG0           0x0100
+#define SHR16_LEDR0           0x0200
+#define SHR16_LEDG1           0x0400
+#define SHR16_LEDR1           0x0800
+#define SHR16_LEDG2           0x1000
+#define SHR16_LEDR2           0x2000
+#define SHR16_LEDG3           0x4000
+#define SHR16_LEDR3           0x8000
+#define SHR16_LEDG4           0x0040
+#define SHR16_LEDR4           0x0080
+#define SHR16_LED_MSK         0xffc0
+// TMC2130 Direction/Enable signals - hardcoded
+#define SHR16_DIR_PUL          0x0001
+#define SHR16_ENA_PUL          0x0002
+#define SHR16_DIR_SEL          0x0004
+#define SHR16_ENA_SEL          0x0008
+#define SHR16_DIR_IDL          0x0010
+#define SHR16_ENA_IDL          0x0020
+#define SHR16_DIR_MSK        (SHR16_DIR_PUL + SHR16_DIR_SEL + SHR16_DIR_IDL)
+#define SHR16_ENA_MSK        (SHR16_ENA_PUL + SHR16_ENA_SEL + SHR16_ENA_IDL)
+
+// UART0 (USB)
+#define UART0_BDR 115200
+
+// TMC2130 - Trinamic stepper driver
+// pinout - hardcoded
+// spi:
+#define TMC2130_SPI_RATE 0 // fosc/4 = 4MHz
+#define TMC2130_SPCR SPI_SPCR(TMC2130_SPI_RATE, 1, 1, 1, 0)
+#define TMC2130_SPSR SPI_SPSR(TMC2130_SPI_RATE)
+
+// params:
+// SG_THR stallguard treshold (sensitivity), range -64..63
+// the stall guard value represents the load angle. if it reaches 0,
+// the motor stalls. It's a 10 bit value, with  1023 in idle load (theoretically)
+// According to the whole setup, that treshold should be tuned for accurate
+// stall detection.
+// Tuning: increase treshold, if stall detection triggers at normal loads
+//   decrese treshold, if stall detection triggers too late
+#define TMC2130_SG_THR_PUL 5
+#define TMC2130_SG_THR_SEL 5
+#define TMC2130_SG_THR_IDL 7
+#define TMC2130_SG_THR_HOM_IDL 5
+
+// TCOOLTHRS coolstep treshold, usable range 400-600, unit is 1/13MHz ~= 75ns
+// below that equivalent speed the stall detection is disabled
+#define TMC2130_TCOOLTHRS_AX_PUL 450
+#define TMC2130_TCOOLTHRS_AX_SEL 450
+#define TMC2130_TCOOLTHRS_AX_IDL 450
+
+// currents for pulley, selector and idler
+#define CURRENT_HOLDING_STEALTH         { 1,  7, 20}
+#define CURRENT_HOLDING_STEALTH_LOADING { 1,  7, 40}
+#define CURRENT_HOLDING_NORMAL          { 1,  7, 20}
+#define CURRENT_HOLDING_NORMAL_LOADING  { 1,  7, 40}
+#define CURRENT_RUNNING_STEALTH         {35, 35, 40}
+#define CURRENT_RUNNING_NORMAL          {30, 35, 40}
+#define CURRENT_HOMING                  { 1, 35, 40}
+
+// speeds and accelerations
+#define MAX_SPEED_SEL_DEF_NORMAL  6000 // micro steps
+#define MAX_SPEED_IDL_DEF_NORMAL  5000 // micro steps
+#define GLOBAL_ACC_DEF_NORMAL    80000 // micro steps / s²
+#define MAX_SPEED_SEL_DEF_STEALTH 2000 // micro steps
+#define MAX_SPEED_IDL_DEF_STEALTH 3000 // micro steps
+#define GLOBAL_ACC_DEF_STEALTH   30000 // micro steps / s²
+
+//mode
+#define HOMING_MODE 0
+#define NORMAL_MODE 1
+#define STEALTH_MODE 2
+
+//ADC configuration
+#define ADC_Btn_None      0
+#define ADC_Btn_Right     4
+#define ADC_Btn_Middle    2
+#define ADC_Btn_Left      1
+
+#define AX_PUL 0 // Pulley (Filament Drive)
+#define AX_SEL 1 // Selector
+#define AX_IDL 2 // Idler
+
+#define AX_PUL_STEP_MM_Ratio          19
+
+#define PIN_STP_IDL_HIGH (PORTD |= 0x40)
+#define PIN_STP_IDL_LOW (PORTD &= ~0x40)
+#define PIN_STP_SEL_HIGH (PORTD |= 0x10)
+#define PIN_STP_SEL_LOW (PORTD &= ~0x10)
+#define PIN_STP_PUL_HIGH (PORTB |= 0x10)
+#define PIN_STP_PUL_LOW (PORTB &= ~0x10)
+
+#define TOOLSYNC 100                         // number of tool change (T) commands before a selector resync is performed
+
+// signals (from interrupts to main loop)
+#define SIG_ID_BTN 1 // any button changed
+
+// states (<0 =error)
+#define STA_INIT 0  // setup - initialization
+#define STA_BUSY 1  // working
+#define STA_READY 2 // ready - accepting commands
+
+#define STA_ERR_TMC0_SPI -1     // TMC2130 axis0 spi error - not responding
+#define STA_ERR_TMC0_MSC -2     // TMC2130 axis0 motor error - short circuit
+#define STA_ERR_TMC0_MOC -3     // TMC2130 axis0 motor error - open circuit
+#define STA_ERR_TMC0_PIN_STP -4 // TMC2130 axis0 pin wirring error - stp signal
+#define STA_ERR_TMC0_PIN_DIR -5 // TMC2130 axis0 pin wirring error - dir signal
+#define STA_ERR_TMC0_PIN_ENA -6 // TMC2130 axis0 pin wirring error - ena signal
+
+#define STA_ERR_TMC1_SPI -11     // TMC2130 axis1 spi error - not responding
+#define STA_ERR_TMC1_MSC -12     // TMC2130 axis1 motor error - short circuit
+#define STA_ERR_TMC1_MOC -13     // TMC2130 axis1 motor error - open circuit
+#define STA_ERR_TMC1_PIN_STP -14 // TMC2130 axis1 pin wirring error - stp signal
+#define STA_ERR_TMC1_PIN_DIR -15 // TMC2130 axis1 pin wirring error - dir signal
+#define STA_ERR_TMC1_PIN_ENA -16 // TMC2130 axis1 pin wirring error - ena signal
+
+#define STA_ERR_TMC2_SPI -21     // TMC2130 axis2 spi error - not responding
+#define STA_ERR_TMC2_MSC -22     // TMC2130 axis2 motor error - short circuit
+#define STA_ERR_TMC2_MOC -23     // TMC2130 axis2 motor error - open circuit
+#define STA_ERR_TMC2_PIN_STP -24 // TMC2130 axis2 pin wirring error - stp signal
+#define STA_ERR_TMC2_PIN_DIR -25 // TMC2130 axis2 pin wirring error - dir signal
+#define STA_ERR_TMC2_PIN_ENA -26 // TMC2130 axis2 pin wirring error - ena signal
+
+// Type Definitions
+// filament types (0: default; 1:flex; 2: PVA)
+// NOTE: Stealth Mode cuts MAX PUL SPEED.
+// Default
+#define TYPE_0_MAX_SPPED_PUL                  4000  //  S/S
+#define TYPE_0_ACC_FEED_PUL                   5000  //  S/S/S
+#define TYPE_0_FILAMENT_PARKING_STEPS         -670  //  STEPS
+#define TYPE_0_FSensor_Sense_STEPS            1500  //  STEPS
+#define TYPE_0_FEED_SPEED_PUL                  760  //  S/S
+#define TYPE_0_L2ExStageOne                    350  //  S/S
+#define TYPE_0_L2ExStageTwo                    440  //  S/S
+#define TYPE_0_UnloadSpeed                     750  //  S/S
+// Flex
+#define TYPE_1_MAX_SPPED_PUL                  2500  //  S/S from 300
+#define TYPE_1_ACC_FEED_PUL                   1800  //  S/S/S
+#define TYPE_1_FILAMENT_PARKING_STEPS         -670  //  STEPS
+#define TYPE_1_FSensor_Sense_STEPS            3000  //  STEPS
+#define TYPE_1_FEED_SPEED_PUL                  650  //  S/S
+#define TYPE_1_L2ExStageOne                    350  //  S/S
+#define TYPE_1_L2ExStageTwo                    440  //  S/S
+#define TYPE_1_UnloadSpeed                     650  //  S/S
+// PVA
+#define TYPE_2_MAX_SPPED_PUL                  2800  //  S/S
+#define TYPE_2_ACC_FEED_PUL                   2000  //  S/S/S
+#define TYPE_2_FILAMENT_PARKING_STEPS         -670  //  STEPS
+#define TYPE_2_FSensor_Sense_STEPS            1500  //  STEPS
+#define TYPE_2_FEED_SPEED_PUL                  760  //  S/S
+#define TYPE_2_L2ExStageOne                    350  //  S/S
+#define TYPE_2_L2ExStageTwo                    440  //  S/S
+#define TYPE_2_UnloadSpeed                     750  //  S/S
+
+// number of extruders
+#define EXTRUDERS 5
+
+// CONFIG
+//#define _CONFIG_H
