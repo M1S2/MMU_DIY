@@ -2,7 +2,7 @@
 
 #include "Buttons.h"
 #include "main.h"
-#include "shr16.h"
+#include "led.h"
 #include "mmctl.h"
 #include "motion.h"
 #include "permanent_storage.h"
@@ -37,11 +37,11 @@ void settings_fsensor_length();
 //!
 void setupMenu()
 {
-    shr16_clr_led();
+    clr_leds();
     delay(200);
-    shr16_set_led(0x2aa);
+    set_led(0x2aa);
     delay(1200);
-    shr16_clr_led();
+    clr_leds();
 
     uint8_t _menu = 0;
     uint8_t _menu_last_cycle = 10;
@@ -49,30 +49,35 @@ void setupMenu()
     bool eraseLocked = true;
     inErrorState = true;
 
-    do {
-        shr16_clr_led();
-        shr16_set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * _menu));
-        if (_menu != _menu_last_cycle) {
-               if (_menu == 0) txPayload((unsigned char*)"X1---");
-          else if (_menu == 1) txPayload((unsigned char*)"X2---");
-          else if (_menu == 2) txPayload((unsigned char*)"X5---");
-          else if (_menu == 3) txPayload((unsigned char*)"X6---");
-          else if (_menu == 4) txPayload((unsigned char*)"X7---");
+    do 
+    {
+        clr_leds();
+        set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * _menu));
+        if (_menu != _menu_last_cycle) 
+        {
+            if (_menu == 0) txPayload((unsigned char*)"X1---");
+            else if (_menu == 1) txPayload((unsigned char*)"X2---");
+            else if (_menu == 2) txPayload((unsigned char*)"X5---");
+            else if (_menu == 3) txPayload((unsigned char*)"X6---");
+            else if (_menu == 4) txPayload((unsigned char*)"X7---");
         }
         _menu_last_cycle = _menu;
 
-        switch (buttonClicked()) {
+        switch (buttonClicked()) 
+        {
         case ADC_Btn_Right:
-            if (_menu > 0) {
+            if (_menu > 0) 
+            {
                 _menu--;
                 delay(800);
             }
             break;
         case ADC_Btn_Middle:
-
-            switch (_menu) {
+            switch (_menu) 
+            {
             case 1:
-                if (!isFilamentLoaded()) {
+                if (!isFilamentLoaded()) 
+                {
                     settings_bowden_length();
                     _exit = true;
                 }
@@ -95,7 +100,8 @@ void setupMenu()
             }
             break;
         case ADC_Btn_Left:
-            if (_menu < 4) {
+            if (_menu < 4) 
+            {
                 _menu++;
                 delay(800);
             }
@@ -105,12 +111,12 @@ void setupMenu()
         }
     } while (!_exit);
 
-    shr16_clr_led();
+    clr_leds();
     delay(400);
-    shr16_set_led(0x2aa);
+    set_led(0x2aa);
     delay(400);
-    shr16_clr_led();
-    //shr16_set_led(1 << 2 * (4 - active_extruder));
+    clr_leds();
+    //set_led(1 << 2 * (4 - active_extruder));
 }
 
 //! @brief Set bowden length
@@ -146,20 +152,29 @@ void settings_bowden_length()
         Done
     };
     S state = S::NotExtruded;
-    for (uint8_t i = 0; i < 7; i++) bowdenLength.increase();
+    for (uint8_t i = 0; i < 7; i++)
+    {
+        bowdenLength.increase();
+    }
     uint8_t tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
     uint8_t tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
     unsigned char tempW[5] = {'W', tempBowLenUpper, tempBowLenLower, BLK, BLK};
     unsigned char tempV[5] = {0,0,0,BLK,BLK};
     txPayload(tempW);
-    do {
+    do 
+    {
         delay(10);
-        switch (buttonClicked()) {
+        switch (buttonClicked()) 
+        {
         case ADC_Btn_Left:
-            switch (state) {
+            switch (state) 
+            {
             case S::NotExtruded:
                 state = S::Done;
-                for (uint8_t i = 0; i < 7; i++) bowdenLength.decrease();
+                for (uint8_t i = 0; i < 7; i++) 
+                {
+                    bowdenLength.decrease();
+                }
                 bowdenLength.~BowdenLength();
                 BOWDEN_LENGTH = BowdenLength::get();
                 txPayload((unsigned char*)"ZZR--");
@@ -182,7 +197,8 @@ void settings_bowden_length()
             }
             break;
         case ADC_Btn_Middle:
-            switch (state) {
+            switch (state) 
+            {
             case S::NotExtruded:
                 state = S::Extruded;
                 tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
@@ -195,7 +211,7 @@ void settings_bowden_length()
                 break;
             case S::Extruded:
                 state = S::NotExtruded;
-                shr16_set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * 1));
+                set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * 1));
                 tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
                 tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
                 tempW[0] = 'W';
@@ -210,7 +226,8 @@ void settings_bowden_length()
             }
             break;
         case ADC_Btn_Right:
-            switch (state) {
+            switch (state) 
+            {
             case S::NotExtruded:
                 break;
             case S::Extruded:

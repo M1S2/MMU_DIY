@@ -28,7 +28,8 @@ inline rx& operator++(rx& byte, int)
 ISR(USART1_RX_vect)
 {
     readRxBuffer = UDR1;
-    switch (rxCount) {
+    switch (rxCount) 
+    {
     case rx::Idle:
         if (readRxBuffer == 0x7F) rxCount++;
         break;
@@ -53,9 +54,16 @@ ISR(USART1_RX_vect)
         rxCount++;
         break;
     case rx::End:
-        if (readRxBuffer == 0xF7) {
-            if (rxData1 == 'I' && rxData2 == 'R' && rxData3 == 'S' && rxData4 == 'E' && rxData5 == 'N') IR_SENSOR = true;
-            else confirmedPayload = true; 
+        if (readRxBuffer == 0xF7) 
+        {
+            if (rxData1 == 'I' && rxData2 == 'R' && rxData3 == 'S' && rxData4 == 'E' && rxData5 == 'N') 
+            {
+                IR_SENSOR = true;
+            }
+            else
+            {
+                confirmedPayload = true;
+            } 
         }
         rxCount = rx::Idle;
         break;
@@ -66,7 +74,8 @@ void txPayload(unsigned char payload[])
 {
     loop_until_bit_is_set(UCSR1A, UDRE1);     // Do nothing until UDR is ready for more data to be written to it
     UDR1 = 0x7F;
-    for (uint8_t i = 0; i < 5; i++) {
+    for (uint8_t i = 0; i < 5; i++) 
+    {
         loop_until_bit_is_set(UCSR1A, UDRE1); // Do nothing until UDR is ready for more data to be written to it
         UDR1 = (0xFF & (int)payload[i]);
     }

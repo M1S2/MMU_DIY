@@ -37,15 +37,13 @@ void process_commands(void);
 void setup()
 {
     permanentStorageInit();
-    shr16_init(); // shift register
     startWakeTime = millis();
     
     led_blink(1);
     //Setup USART1 Interrupt Registers
     UCSR1A = (0 << U2X1); // baudrate multiplier
     UCSR1B = (1 << RXEN1) | (1 << TXEN1) | (0 << UCSZ12);   // Turn on the transmission and reception circuitry
-    UCSR1C = (0 << UMSEL11) | (0 << UMSEL10)| (0 << UPM11)
-             | (0 << UPM10) | (1 << USBS1) | (1 << UCSZ11) | (1 << UCSZ10); // Use 8-bit character sizes
+    UCSR1C = (0 << UMSEL11) | (0 << UMSEL10)| (0 << UPM11) | (0 << UPM10) | (1 << USBS1) | (1 << UCSZ11) | (1 << UCSZ10); // Use 8-bit character sizes
     //UCSR1D = (0 << CTSEN) | (0 << RTSEN); // Disable flow control
     UBRR1H = (BAUD_PRESCALE >> 8); // Load upper 8-bits of the baud rate value into the high byte of the UBRR register
     UBRR1L = BAUD_PRESCALE; // Load lower 8-bits of the baud rate value into the low byte of the UBRR register
@@ -60,7 +58,7 @@ void setup()
     led_blink(3);
     led_blink(4);
 
-    shr16_clr_led();
+    clr_leds();
     homeIdlerSmooth(true);
     if (active_extruder != EXTRUDERS) txPayload((unsigned char*)"STR--");
 }
@@ -92,11 +90,13 @@ void setup()
 //! @n b - blinking
 void manual_extruder_selector()
 {
-    shr16_clr_led();
-    shr16_set_led(1 << 2 * (4 - active_extruder));
+    clr_leds();
+    set_led(1 << 2 * (4 - active_extruder));
 
-    if (!isFilamentLoaded()) {
-        switch (buttonClicked()) {
+    if (!isFilamentLoaded()) 
+    {
+        switch (buttonClicked()) 
+        {
         case ADC_Btn_Right:
             if (active_extruder < EXTRUDERS) set_positions(active_extruder + 1, true);
             if (active_extruder == EXTRUDERS) txPayload((unsigned char*)"X1---");
@@ -108,8 +108,11 @@ void manual_extruder_selector()
         default:
             break;
         }
-    } else {
-        switch (buttonClicked()) {
+    } 
+    else 
+    {
+        switch (buttonClicked()) 
+        {
           case ADC_Btn_Right:
           case ADC_Btn_Left:
             txPayload((unsigned char*)"Z1---");
@@ -121,11 +124,12 @@ void manual_extruder_selector()
         }
     }
 
-    if (active_extruder == 5) {
-        shr16_clr_led();
-        shr16_set_led(3 << 2 * 0);
+    if (active_extruder == 5) 
+    {
+        clr_leds();
+        set_led(3 << 2 * 0);
         delay(100);
-        shr16_clr_led();
+        clr_leds();
         delay(100);
     }
 }
@@ -143,22 +147,29 @@ void manual_extruder_selector()
 void loop()
 {
     process_commands();    
-    if (!isPrinting && !isEjected) {
+    if (!isPrinting && !isEjected) 
+    {
         manual_extruder_selector();
-        if (ADC_Btn_Middle == buttonClicked()) {
-            if (active_extruder < EXTRUDERS) feed_filament();
+        if (ADC_Btn_Middle == buttonClicked()) 
+        {
+            if (active_extruder < EXTRUDERS)
+            {
+                feed_filament();
+            }
             else if (active_extruder == EXTRUDERS) 
             {
                 txPayload((unsigned char*)"SETUP");
                 setupMenu();
             }
         }
-    } else if (isEjected) {
-        switch (buttonClicked()) {
+    } 
+    else if (isEjected) 
+    {
+        switch (buttonClicked()) 
+        {
         case ADC_Btn_Right:
             engage_filament_pulley(true);
-            moveSmooth(AX_PUL, (EJECT_PULLEY_STEPS * -1),
-        filament_lookup_table[5][filament_type[previous_extruder]], false, false, GLOBAL_ACC);
+            moveSmooth(AX_PUL, (EJECT_PULLEY_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], false, false, GLOBAL_ACC);
             engage_filament_pulley(false);
             break;
         default:
@@ -182,33 +193,49 @@ void process_commands(void)
     // Currently unused. unsigned char tData4 = rxData4;
     // Currently unused. unsigned char tData5 = rxData5;
     bool confPayload = confirmedPayload;
-    if (confPayload) confirmedPayload = false;
-    else { tData1 = ' '; tData2 = ' '; tData3 = ' '; // Currently unused. tData4 = ' '; tData5 = ' ';
-    } sei();
+    if (confPayload) 
+    {
+        confirmedPayload = false;
+    }
+    else 
+    { 
+        tData1 = ' '; tData2 = ' '; tData3 = ' '; // Currently unused. tData4 = ' '; tData5 = ' ';
+    } 
+    sei();
     if (inErrorState) return;
 
-    if (tData1 == 'T') {
+    if (tData1 == 'T') 
+    {
         //Tx Tool Change CMD Received
-        if (tData2 < EXTRUDERS) {
+        if (tData2 < EXTRUDERS) 
+        {
             m600RunoutChanging = false;
             MMU2SLoading = true;
             toolChange(tData2);
             txPayload(OK);
         }
-    } else if (tData1 == 'L') {
+    } 
+    else if (tData1 == 'L') 
+    {
         // Lx Load Filament CMD Received
-        if (tData2 < EXTRUDERS) {
-            if (isFilamentLoaded()) {
+        if (tData2 < EXTRUDERS) 
+        {
+            if (isFilamentLoaded()) 
+            {
                 txPayload((unsigned char*)"Z1---");
                 delay(1500);
                 txPayload((unsigned char*)"ZZZ--");
-            } else {
+            } 
+            else 
+            {
                 set_positions(tData2, true);
                 feed_filament(); // returns OK and active_extruder to update MK3
             }
             txPayload(OK);
         }
-    } else if ((tData1 == 'U') && (tData2 == '0')) {
+    } 
+    else if ((tData1 == 'U') && (tData2 == '0')) 
+    {
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
         homedOnUnload = false; // Clear this flag as unload_filament_withSensor() method uses it within the 'T' cmds
@@ -216,49 +243,76 @@ void process_commands(void)
         isPrinting = false;
         toolChanges = 0;
         trackToolChanges = 0;
-    } else if (tData1 == 'S') {
+    } 
+    else if (tData1 == 'S') 
+    {
         // Sx Starting CMD Received
-        if (tData2 == '0') {
+        if (tData2 == '0') 
+        {
             txPayload(OK);
-        } else if (tData2 == '1') {
+        } 
+        else if (tData2 == '1') 
+        {
             unsigned char tempS1[5] = {'O','K',(FW_VERSION >> 8), (0xFF & FW_VERSION), BLK};
             txPayload(tempS1);
-        } else if (tData2 == '2') {
+        } 
+        else if (tData2 == '2') 
+        {
             unsigned char tempS2[5] = {'O','K',(FW_BUILDNR >> 8), (0xFF & FW_BUILDNR), BLK};
             txPayload(tempS2);
-        } else if (tData2 == '3') {
+        } 
+        else if (tData2 == '3') 
+        {
             unsigned char tempS3[5] = {'O','K',(uint8_t)active_extruder, BLK, BLK};
             txPayload(tempS3);
         }
-    } else if (tData1 == 'F') {
+    } 
+    else if (tData1 == 'F') 
+    {
         // Fxy Filament Type Set CMD Received
-        if ((tData2 < EXTRUDERS) && (tData3 < 3)) {
+        if ((tData2 < EXTRUDERS) && (tData3 < 3)) 
+        {
             filament_type[tData2] = tData3;
             txPayload(OK);
         }
-    } else if ((tData1 == 'X') && (tData2 == '0')) {
+    } 
+    else if ((tData1 == 'X') && (tData2 == '0')) 
+    {
         // Xx RESET CMD Received (Done by starting program again)
         asm("jmp 0");
-    } else if ((tData1 == 'P') && (tData2 == '0')) {
+    } 
+    else if ((tData1 == 'P') && (tData2 == '0')) 
+    {
         txFINDAStatus();
-    } else if ((tData1 == 'C') && (tData2 == '0')) {
+    } 
+    else if ((tData1 == 'C') && (tData2 == '0')) 
+    {
         txPayload(OK);
         load_filament_into_extruder();
-    } else if  (tData1 == 'E') {
+    } 
+    else if  (tData1 == 'E') 
+    {
         // Ex Eject Filament X CMD Received
-        if (tData2 < EXTRUDERS) { // Ex: eject filament
+        if (tData2 < EXTRUDERS) // Ex: eject filament
+        {
             m600RunoutChanging = true;
             eject_filament(tData2);
             txPayload(OK);
         }
-    } else if ((tData1 == 'R') && (tData2 == '0')) {
+    } 
+    else if ((tData1 == 'R') && (tData2 == '0')) 
+    {
         // Rx Recover Post-Eject Filament X CMD Received
         recover_after_eject();
         txPayload(OK);
-    } else if (tData1 == 'K') {
-        if (!isFilamentLoaded()) {
+    } 
+    else if (tData1 == 'K') 
+    {
+        if (!isFilamentLoaded())
+        {
             // Kx Cut filament
-            if (tData2 < EXTRUDERS) {
+            if (tData2 < EXTRUDERS) 
+            {
                 mmctl_cut_filament(tData2);
                 txPayload(OK);
             }
@@ -269,27 +323,34 @@ void process_commands(void)
 //****************************************************************************************************
 //* this routine is the common routine called for fixing the filament issues (loading or unloading)
 //****************************************************************************************************
-void fixTheProblem(bool showPrevious) {
+void fixTheProblem(bool showPrevious) 
+{
     engage_filament_pulley(false);                    // park the idler stepper motor
     disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
     disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
 
     inErrorState = true;
 
-    while ((ADC_Btn_Middle != buttonClicked()) || isFilamentLoaded()) {
+    while ((ADC_Btn_Middle != buttonClicked()) || isFilamentLoaded()) 
+    {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
-        if (!showPrevious) {
-            switch (buttonClicked()) {
+        if (!showPrevious) 
+        {
+            switch (buttonClicked()) 
+            {
                 case ADC_Btn_Right:
                     engage_filament_pulley(true);
-                    if (isFilamentLoaded()) {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1),
-                                       filament_lookup_table[5][filament_type[active_extruder]],
-                                       false, false, GLOBAL_ACC, true) == MR_Success) { // move to trigger FINDA
-                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]],
-                                       filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC); // move to filament parking position
+                    if (isFilamentLoaded()) 
+                    {
+                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+                        {
+                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC); // move to filament parking position
                         }
-                    } else moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]], false);
+                    } 
+                    else 
+                    {
+                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]], false);
+                    }
                     engage_filament_pulley(false);
                     disableStepper(AX_SEL);                    
                     disableStepper(AX_IDL);
@@ -305,23 +366,34 @@ void fixTheProblem(bool showPrevious) {
                     break;
             }
             delay(100);
-            shr16_clr_led();
+            clr_leds();
             delay(100);
-            if (isFilamentLoaded()) {
-                shr16_set_led(2 << 2 * (4 - active_extruder));
-            } else shr16_set_led(1 << 2 * (4 - active_extruder));
-        } else {
-            switch (buttonClicked()) {
+            if (isFilamentLoaded()) 
+            {
+                set_led(2 << 2 * (4 - active_extruder));
+            } 
+            else 
+            {
+                set_led(1 << 2 * (4 - active_extruder));
+            }
+        } 
+        else 
+        {
+            switch (buttonClicked()) 
+            {
                 case ADC_Btn_Right:
                     engage_filament_pulley(true);
-                    if (isFilamentLoaded()) {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1),
-                                       filament_lookup_table[5][filament_type[previous_extruder]]*1.8,
-                                       false, false, GLOBAL_ACC, true) == MR_Success) { // move to trigger FINDA
-                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[previous_extruder]],
-                                       filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false, false, GLOBAL_ACC); // move to filament parking position
+                    if (isFilamentLoaded()) 
+                    {
+                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+                        {
+                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[previous_extruder]], filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false, false, GLOBAL_ACC); // move to filament parking position
                         }
-                    } else moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
+                    } 
+                    else 
+                    {
+                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
+                    }
                     engage_filament_pulley(false);
                     disableStepper(AX_IDL);
                     break;
@@ -335,58 +407,69 @@ void fixTheProblem(bool showPrevious) {
                     break;
             }
             delay(100);
-            shr16_clr_led();
-            if (active_extruder != previous_extruder) shr16_set_led(1 << 2 * (4 - active_extruder));
+            clr_leds();
+            if (active_extruder != previous_extruder) 
+            {
+                set_led(1 << 2 * (4 - active_extruder));
+            }
             delay(100);
-            if (isFilamentLoaded()) {
-                shr16_set_led(2 << 2 * (4 - previous_extruder));
-            } else shr16_set_led(1 << 2 * (4 - previous_extruder));
+            if (isFilamentLoaded()) 
+            {
+                set_led(2 << 2 * (4 - previous_extruder));
+            } 
+            else 
+            {
+                set_led(1 << 2 * (4 - previous_extruder));
+            }
         }
     }
     delay(100);
     
-    #warning TODO: No TMC available!
-    //tmc2130_init_axis(AX_SEL, tmc2130_mode);           // turn ON the selector stepper motor
-    //tmc2130_init_axis(AX_IDL, tmc2130_mode);           // turn ON the idler stepper motor
     inErrorState = false;
     txPayload((unsigned char*)"ZZZ--"); // Clear MK3 Message
     home(true); // Home and return to previous active extruder
     trackToolChanges = 0;
 }
 
-void fixSelCrash(void) {
-
+void fixSelCrash(void) 
+{
     engage_filament_pulley(false);                    // park the idler stepper motor
     disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
     inErrorState = true;
 
-    while (ADC_Btn_Middle != buttonClicked()) {
+    while (ADC_Btn_Middle != buttonClicked()) 
+    {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         delay(100);
-        shr16_clr_led();
+        clr_leds();
         delay(100);
-        if (isFilamentLoaded()) {
-            shr16_set_led(2 << 2 * (4 - active_extruder));
-        } else shr16_set_led(1 << 2 * (4 - active_extruder));
+        if (isFilamentLoaded()) 
+        {
+            set_led(2 << 2 * (4 - active_extruder));
+        } 
+        else set_led(1 << 2 * (4 - active_extruder));
     }
     selSGFailCount = 0;
     inErrorState = false;    
     set_sel_toLast_positions(active_extruder);
 }
 
-void fixIdlCrash(void) {
-
+void fixIdlCrash(void) 
+{
     disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
     inErrorState = true;
 
-    while (ADC_Btn_Middle != buttonClicked()) {
+    while (ADC_Btn_Middle != buttonClicked()) 
+    {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         delay(100);
-        shr16_clr_led();
+        clr_leds();
         delay(100);
-        if (isFilamentLoaded()) {
-            shr16_set_led(2 << 2 * (4 - active_extruder));
-        } else shr16_set_led(1 << 2 * (4 - active_extruder));
+        if (isFilamentLoaded()) 
+        {
+            set_led(2 << 2 * (4 - active_extruder));
+        } 
+        else set_led(1 << 2 * (4 - active_extruder));
     }
     idlSGFailCount = 0;
     inErrorState = false;

@@ -1,5 +1,4 @@
 #include "motion.h"
-#include "shr16.h"
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
@@ -47,11 +46,15 @@ static uint16_t set_pulley_direction(int steps);
  */
 bool move_idler(int steps, uint16_t speed)
 {
-    bool ret;
-    if (speed > MAX_SPEED_IDLER) speed = MAX_SPEED_IDLER;
-    if (moveSmooth(AX_IDL, steps, speed, true, true, GLOBAL_ACC) == MR_Failed) ret = false;
-    else ret = true;
-    return ret;
+    if (speed > MAX_SPEED_IDLER)
+    {
+        speed = MAX_SPEED_IDLER;
+    }
+    if (moveSmooth(AX_IDL, steps, speed, true, true, GLOBAL_ACC) == MR_Failed) 
+    {
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -61,10 +64,21 @@ bool move_idler(int steps, uint16_t speed)
  */
 bool move_selector(int steps, uint16_t speed)
 {
-    if (speed > MAX_SPEED_SELECTOR) speed = MAX_SPEED_SELECTOR;
-    if (!isFilamentLoaded()) {
-        if (moveSmooth(AX_SEL, steps, speed) == MR_Failed) return false;
-    } else return false;
+    if (speed > MAX_SPEED_SELECTOR) 
+    {
+        speed = MAX_SPEED_SELECTOR;
+    }
+    if (!isFilamentLoaded()) 
+    {
+        if (moveSmooth(AX_SEL, steps, speed) == MR_Failed)
+        {
+            return false;
+        }
+    } 
+    else 
+    {
+        return false;
+    }
     return true;
 }
 

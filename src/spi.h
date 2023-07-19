@@ -6,9 +6,7 @@
 #include <avr/io.h>
 #include "config.h"
 
-#define SPI_SPCR(rat, pha, pol, mst, dor)                                                                              \
-    ((rat & 3) | (pha ? (1 << CPHA) : 0) | (pol ? (1 << CPOL) : 0) | (mst ? (1 << MSTR) : 0) | (dor ? (1 << DORD) : 0) \
-     | (1 << SPE))
+#define SPI_SPCR(rat, pha, pol, mst, dor) ((rat & 3) | (pha ? (1 << CPHA) : 0) | (pol ? (1 << CPOL) : 0) | (mst ? (1 << MSTR) : 0) | (dor ? (1 << DORD) : 0) | (1 << SPE))
 #define SPI_SPSR(rat) ((rat & 4) ? (1 << SPI2X) : 0)
 
 // Bit numbers of data direction register:

@@ -15,6 +15,9 @@ const uint8_t VoltagePIN = A0; // A2D is a divide by 10 setup on PIN A0
 uint8_t getMMU2S_System_Voltage(void)
 {
     uint32_t reading = 0;
-    for (int i=0; i < 4; i++) reading += analogRead(VoltagePIN);
+    for (int i=0; i < 4; i++)
+    {
+        reading += analogRead(VoltagePIN);
+    }
     return (reading/8.5);
 }

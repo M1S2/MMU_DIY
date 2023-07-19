@@ -55,8 +55,14 @@ void eepromEraseAll()
 //! @retval false invalid
 static bool validFilament(uint8_t filament)
 {
-    if (filament < (EXTRUDERS-1)) return true;
-    else return false;
+    if (filament < (EXTRUDERS-1)) 
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 //! @brief Is bowden length in valid range?
@@ -65,8 +71,10 @@ static bool validFilament(uint8_t filament)
 //! @retval false invalid
 static bool validBowdenLen (const uint16_t BowdenLength)
 {
-    if ((BowdenLength >= eepromBowdenLenMinimum)
-            && BowdenLength <= eepromBowdenLenMaximum) return true;
+    if ((BowdenLength >= eepromBowdenLenMinimum) && (BowdenLength <= eepromBowdenLenMaximum))
+    {
+        return true;
+    }
     return false;
 }
 
@@ -89,7 +97,10 @@ uint16_t BowdenLength::get()
                 bowdenLength = eepromLengthCorrectionBase + LengthCorrectionLegacy * 10;
             }
         }
-        if (validBowdenLen(bowdenLength)) return bowdenLength;
+        if (validBowdenLen(bowdenLength))
+        {
+            return bowdenLength;
+        }
     }
 
     return eepromBowdenLenDefault;
@@ -136,7 +147,10 @@ bool BowdenLength::decrease()
 //! @brief Store bowden length permanently.
 BowdenLength::~BowdenLength()
 {
-    if (validFilament(m_filament))eeprom_update_word(&(eepromBase->eepromBowdenLen[m_filament]), m_length);
+    if (validFilament(m_filament))
+    {
+        eeprom_update_word(&(eepromBase->eepromBowdenLen[m_filament]), m_length);
+    }
 }
 
 //! @brief Get filament storage status
@@ -148,11 +162,17 @@ BowdenLength::~BowdenLength()
 uint8_t FilamentLoaded::getStatus()
 {
     if (eeprom_read_byte(&(eepromBase->eepromFilamentStatus[0])) == eeprom_read_byte(&(eepromBase->eepromFilamentStatus[1])))
+    {
         return eeprom_read_byte(&(eepromBase->eepromFilamentStatus[0]));
+    }
     if (eeprom_read_byte(&(eepromBase->eepromFilamentStatus[0])) == eeprom_read_byte(&(eepromBase->eepromFilamentStatus[2])))
+    {
         return eeprom_read_byte(&(eepromBase->eepromFilamentStatus[0]));
+    }
     if (eeprom_read_byte(&(eepromBase->eepromFilamentStatus[1])) == eeprom_read_byte(&(eepromBase->eepromFilamentStatus[2])))
+    {
         return eeprom_read_byte(&(eepromBase->eepromFilamentStatus[1]));
+    }
     return 0xff;
 }
 
@@ -166,7 +186,10 @@ bool FilamentLoaded::setStatus(uint8_t status)
     {
         eeprom_update_byte(&(eepromBase->eepromFilamentStatus[i]), status);
     }
-    if (getStatus() == status) return true;
+    if (getStatus() == status)
+    {
+        return true;
+    }
     return false;
 }
 
@@ -223,16 +246,25 @@ int16_t FilamentLoaded::getIndex()
 bool FilamentLoaded::get(uint8_t& filament)
 {
     int16_t index = getIndex();
-    if ((index < 0) || (static_cast<uint16_t>(index) >= ARR_SIZE(eeprom_t::eepromFilament))) return false;
+    if ((index < 0) || (static_cast<uint16_t>(index) >= ARR_SIZE(eeprom_t::eepromFilament))) 
+    {
+        return false;
+    }
     const uint8_t rawFilament = eeprom_read_byte(&(eepromBase->eepromFilament[index]));
     filament = 0x0f & rawFilament;
-    if (filament > 4) return false;
+    if (filament > 4) 
+    {
+        return false;
+    }
     const uint8_t status = getStatus();
-    if (!(status == KeyFront1
-            || status == KeyReverse1
-            || status == KeyFront2
-            || status == KeyReverse2)) return false;
-    if ((rawFilament >> 4) != status) return false;
+    if (!(status == KeyFront1 || status == KeyReverse1 || status == KeyFront2 || status == KeyReverse2)) 
+    {
+        return false;
+    }
+    if ((rawFilament >> 4) != status)
+    {
+        return false;
+    }
     return true;
 }
 
@@ -253,12 +285,21 @@ bool FilamentLoaded::set(uint8_t filament)
         uint8_t status = getStatus();
         int16_t index = getIndex();
         getNext(status, index);
-        if(!setStatus(status)) return false;
+        if(!setStatus(status)) 
+        {
+            return false;
+        }
         uint8_t filamentRaw = ((status << 4) & 0xf0) + (filament & 0x0f);
         eeprom_update_byte(&(eepromBase->eepromFilament[index]), filamentRaw);
-        if (filamentRaw == eeprom_read_byte(&(eepromBase->eepromFilament[index]))) return true;
+        if (filamentRaw == eeprom_read_byte(&(eepromBase->eepromFilament[index]))) 
+        {
+            return true;
+        }
         getNext(status);
-        if(!setStatus(status)) return false;
+        if(!setStatus(status)) 
+        {
+            return false;
+        }
     }
     return false;
 }
