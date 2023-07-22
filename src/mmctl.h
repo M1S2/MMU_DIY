@@ -8,7 +8,6 @@
 extern bool isPrinting;
 extern bool isHomed;
 extern int8_t active_extruder;
-extern int8_t activeSelPos;
 extern int8_t activeIdlPos;
 extern int8_t previous_extruder;
 extern bool isIdlerParked;
@@ -29,11 +28,8 @@ void load_filament_into_extruder();
 void home(bool doToolSync = false);
 bool set_positions(uint8_t _next_extruder, bool update_extruders = false);
 void set_idler_toLast_positions(uint8_t _next_extruder);
-void set_sel_toLast_positions(uint8_t _next_extruder);
 bool setIDL2pos(uint8_t _next_extruder);
-bool setSEL2pos(uint8_t _next_extruder);
 void eject_filament(uint8_t extruder);
 void recover_after_eject();
-void mmctl_cut_filament(uint8_t x2cut);
 
 #endif //_MMCTL_H

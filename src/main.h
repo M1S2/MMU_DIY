@@ -27,14 +27,14 @@ extern bool MMU2SLoading;
 extern bool inErrorState;
 //extern bool initialised;
 void fixTheProblem(bool showPrevious = false);
-void fixSelCrash(void);
 void fixIdlCrash(void);
 
 extern long startWakeTime;
 
-typedef enum eFault {FAULT_IDLER_INIT_0, FAULT_IDLER_INIT_1, FAULT_IDLER_INIT_2,
-                     FAULT_SELECTOR_INIT_0, FAULT_SELECTOR_INIT_1, FAULT_SELECTOR_INIT_2,
-                     FAULT_PULLEY_INIT_0, FAULT_PULLEY_INIT_1, FAULT_PULLEY_INIT_2,
-                    } Fault;
+typedef enum eFault
+{
+    FAULT_IDLER_INIT_0, FAULT_IDLER_INIT_1, FAULT_IDLER_INIT_2,
+    FAULT_PULLEY_INIT_0, FAULT_PULLEY_INIT_1, FAULT_PULLEY_INIT_2,
+} Fault;
 
 #endif //_MAIN_H

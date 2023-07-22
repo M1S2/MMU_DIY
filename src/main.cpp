@@ -305,18 +305,6 @@ void process_commands(void)
         // Rx Recover Post-Eject Filament X CMD Received
         recover_after_eject();
         txPayload(OK);
-    } 
-    else if (tData1 == 'K') 
-    {
-        if (!isFilamentLoaded())
-        {
-            // Kx Cut filament
-            if (tData2 < EXTRUDERS) 
-            {
-                mmctl_cut_filament(tData2);
-                txPayload(OK);
-            }
-        }
     }
 }
 
@@ -326,7 +314,6 @@ void process_commands(void)
 void fixTheProblem(bool showPrevious) 
 {
     engage_filament_pulley(false);                    // park the idler stepper motor
-    disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
     disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
 
     inErrorState = true;
@@ -351,15 +338,13 @@ void fixTheProblem(bool showPrevious)
                     {
                         moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]], false);
                     }
-                    engage_filament_pulley(false);
-                    disableStepper(AX_SEL);                    
+                    engage_filament_pulley(false);                 
                     disableStepper(AX_IDL);
                     break;
                 case ADC_Btn_Left:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
-                    engage_filament_pulley(false);
-                    disableStepper(AX_SEL);                    
+                    engage_filament_pulley(false);                   
                     disableStepper(AX_IDL);
                     break;
                 default:
@@ -429,29 +414,6 @@ void fixTheProblem(bool showPrevious)
     txPayload((unsigned char*)"ZZZ--"); // Clear MK3 Message
     home(true); // Home and return to previous active extruder
     trackToolChanges = 0;
-}
-
-void fixSelCrash(void) 
-{
-    engage_filament_pulley(false);                    // park the idler stepper motor
-    disableStepper(AX_SEL);                            // turn OFF the selector stepper motor
-    inErrorState = true;
-
-    while (ADC_Btn_Middle != buttonClicked()) 
-    {
-        //  wait until key is entered to proceed  (this is to allow for operator intervention)
-        delay(100);
-        clr_leds();
-        delay(100);
-        if (isFilamentLoaded()) 
-        {
-            set_led(2 << 2 * (4 - active_extruder));
-        } 
-        else set_led(1 << 2 * (4 - active_extruder));
-    }
-    selSGFailCount = 0;
-    inErrorState = false;    
-    set_sel_toLast_positions(active_extruder);
 }
 
 void fixIdlCrash(void) 

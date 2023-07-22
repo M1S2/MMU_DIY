@@ -10,7 +10,6 @@
 // public variables:
 BowdenLength bowdenLength;
 uint16_t BOWDEN_LENGTH = bowdenLength.get();
-uint16_t MAX_SPEED_SELECTOR =  MAX_SPEED_SEL; // micro steps
 uint16_t MAX_SPEED_IDLER    =  MAX_SPEED_IDL; // micro steps
 int8_t filament_type[EXTRUDERS] = { 0, 0, 0, 0, 0};
 int filament_lookup_table[9][3] =
@@ -29,15 +28,12 @@ int filament_lookup_table[9][3] =
 const uint8_t IDLER_PARKING_STEPS = (355 / 2) + 40;      // 217
 const uint16_t EJECT_PULLEY_STEPS = 2000;
 
-const int selectorStepPositionsFromHome[EXTRUDERS+2] = {-3700, -3002, -2305, -1607, -910, -100, 0};
 const int idlerStepPositionsFromHome[EXTRUDERS+1] = {-130, -485, -840, -1195, -1550, 0};
 
-uint8_t selSGFailCount = 0;
 uint8_t idlSGFailCount = 0;
 
 // private functions:
 static uint16_t set_idler_direction(int steps);
-static uint16_t set_selector_direction(int steps);
 static uint16_t set_pulley_direction(int steps);
 
 /**
@@ -57,31 +53,6 @@ bool move_idler(int steps, uint16_t speed)
     return true;
 }
 
-/**
- * @brief move_selector
- * Strictly prevent selector movement, when filament is in FINDA
- * @param steps, number of micro steps
- */
-bool move_selector(int steps, uint16_t speed)
-{
-    if (speed > MAX_SPEED_SELECTOR) 
-    {
-        speed = MAX_SPEED_SELECTOR;
-    }
-    if (!isFilamentLoaded()) 
-    {
-        if (moveSmooth(AX_SEL, steps, speed) == MR_Failed)
-        {
-            return false;
-        }
-    } 
-    else 
-    {
-        return false;
-    }
-    return true;
-}
-
 void move_pulley(int steps, uint16_t speed)
 {
     moveSmooth(AX_PUL, steps, speed, false, true);
@@ -94,18 +65,6 @@ void move_pulley(int steps, uint16_t speed)
  * @return abs(steps)
  */
 uint16_t set_idler_direction(int steps)
-{
-    #warning No implementation. Delete this method.
-}
-
-/**
- * @brief set_selector_direction
- * Sets the direction bit on the motor driver and returns positive number of steps
- * @param steps: positive = to the right (towards filament 5),
- * negative = to the left (towards filament 1)
- * @return abs(steps)
- */
-uint16_t set_selector_direction(int steps)
 {
     #warning No implementation. Delete this method.
 }
@@ -147,8 +106,6 @@ void enableStepper(int axis)
     case AX_PUL:
         PIN_PUL_DIR_LOW;
         break;
-    case AX_SEL:
-        break;
     case AX_IDL:
         break;
     }
@@ -161,25 +118,9 @@ void disableStepper(int axis)
     case AX_PUL:
         PIN_PUL_DIR_HIGH;
         break;
-    case AX_SEL:
-        break;
     case AX_IDL:
         break;
     }
-}
-
-MotReturn homeSelectorSmooth()
-{
-    for (int c = 2; c > 0; c--) // touch end 2 times
-    {
-        #warning TODO: Implement homing
-        //tmc2130_init(HOMING_MODE);  // trinamic, homing
-        moveSmooth(AX_SEL, 4000, 2000, false);
-        //tmc2130_init(tmc2130_mode);  // trinamic, normal
-        if (c > 1) moveSmooth(AX_SEL, -300, 2000, false);
-    }
-    activeSelPos = EXTRUDERS+1;
-    return MR_Success;
 }
 
 MotReturn homeIdlerSmooth(bool toLastFilament)
@@ -209,11 +150,10 @@ MotReturn homeIdlerSmooth(bool toLastFilament)
 
 /**
  * @brief moveTest
- * @param axis, index of axis, use AX_PUL, AX_SEL or AX_IDL
+ * @param axis, index of axis, use AX_PUL or AX_IDL
  * @param steps, number of micro steps to move
  * @param speed, max. speed
- * @param rehomeOnFail: flag, by default true, set to false
- *   in homing commands, to prevent endless loops and stack overflow.
+ * @param rehomeOnFail: flag, by default true, set to false in homing commands, to prevent endless loops and stack overflow.
  * @return
  */
 #warning TODO: Remove parameter withStallDetection
@@ -239,9 +179,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
             break;
         case AX_IDL:
             stepsLeft = set_idler_direction(steps);
-            break;
-        case AX_SEL:
-            stepsLeft = set_selector_direction(steps);
             break;
     }
 
@@ -278,10 +215,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
         case AX_IDL:
             PIN_STP_IDL_HIGH;
             PIN_STP_IDL_LOW;
-            break;
-        case AX_SEL:
-            PIN_STP_SEL_HIGH;
-            PIN_STP_SEL_LOW;            
             break;
         }
 
@@ -331,9 +264,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
     {
     case AX_IDL:
         idlSGFailCount = 0;
-        break;
-    case AX_SEL:
-        selSGFailCount = 0;
         break;
     }
     return ret;

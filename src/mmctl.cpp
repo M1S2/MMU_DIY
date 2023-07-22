@@ -14,7 +14,6 @@
 
 // public variables:
 int8_t active_extruder = -1;
-int8_t activeSelPos = -1;
 int8_t activeIdlPos = -1;
 int8_t previous_extruder = -1;
 uint16_t toolChanges = 0;
@@ -40,7 +39,6 @@ bool feed_filament(void)
         engage_filament_pulley(true);
         while (!_loaded) 
         {
-    
             if (moveSmooth(AX_PUL, 4000, filament_lookup_table[5][filament_type[active_extruder]], false, true, GLOBAL_ACC, true) == MR_Success) 
             {
                 delay(10);
@@ -114,10 +112,9 @@ void toolChange(int new_extruder)
         {
             unload_filament_withSensor(previous_extruder);
         }
-        if ((trackToolChanges == TOOLSYNC) || !isHomed)  // Home every period TOOLSYNC
+        if (!isHomed)
         {
             home(true);
-        // move idler and selector to new filament position
         } 
         else if (!homedOnUnload) 
         {
@@ -169,6 +166,7 @@ void eject_filament(uint8_t extruder)
     }
 
     set_positions(extruder, true);
+#if false
     if (active_extruder == (EXTRUDERS - 1))
     {
         setSEL2pos(0);
@@ -177,6 +175,7 @@ void eject_filament(uint8_t extruder)
     {
         setSEL2pos(EXTRUDERS);
     }
+#endif
     isEjected = true;
 
     engage_filament_pulley(true);
@@ -412,7 +411,6 @@ void home(bool doToolSync)
 {
     bool previouslyEngaged = !isIdlerParked;
     homeIdlerSmooth();
-    homeSelectorSmooth();
 
     clr_leds();
     set_led(0x155);       // All five red
@@ -436,7 +434,7 @@ void home(bool doToolSync)
 
 bool set_positions(uint8_t _next_extruder, bool update_extruders)
 {
-    bool _return0 = false, _return1 = false;
+    bool _return0 = false;
     if (update_extruders) 
     {
         previous_extruder = active_extruder;
@@ -452,9 +450,8 @@ bool set_positions(uint8_t _next_extruder, bool update_extruders)
     else 
     {
         _return0 = setIDL2pos(_next_extruder);
-        _return1 = setSEL2pos(_next_extruder);
     }
-    if (!_return0 || !_return1)
+    if (!_return0)
     {
         return false;
     }
@@ -480,22 +477,6 @@ bool setIDL2pos(uint8_t _next_extruder)
     return _return;
 }
 
-bool setSEL2pos(uint8_t _next_extruder)
-{
-    bool _return = false;
-    if (_next_extruder > 6) 
-    {
-        _next_extruder = 6;
-    }
-    int _selector_steps = (selectorStepPositionsFromHome[_next_extruder] - selectorStepPositionsFromHome[activeSelPos]);
-    if (move_selector(_selector_steps)) 
-    { 
-        activeSelPos = _next_extruder; 
-        _return = true; 
-    }
-    return _return;
-}
-
 void set_idler_toLast_positions(uint8_t _next_extruder)
 {
     bool previouslyEngaged = !isIdlerParked;
@@ -505,50 +486,4 @@ void set_idler_toLast_positions(uint8_t _next_extruder)
         fixTheProblem();
     }
     engage_filament_pulley(previouslyEngaged);
-}
-
-void set_sel_toLast_positions(uint8_t _next_extruder)
-{
-    homeSelectorSmooth();
-    if (!setSEL2pos(_next_extruder))
-    {
-        fixTheProblem();
-    }
-}
-
-/**
-* @Cut off a tip that isn't loading correctly
-* move selector sideways and push filament forward a little bit, move selector to cut tip with SG to home if loss of step,
-* pull filament back a bit. parent method would then attempt to gently feed filament again
-*/
-void mmctl_cut_filament(uint8_t _next_extruder)
-{
-    const int pulCutStepsPre = 300;
-    const int pulCutStepsPost = -100;
-    uint8_t cut_offset = 0;
-
-    previous_extruder = active_extruder;
-    active_extruder = _next_extruder;
-    if (!isHomed)
-    {
-        home();
-    }
-    setIDL2pos(_next_extruder);
-    if ((_next_extruder + 2) > 6)
-    {
-        cut_offset = 1;
-    }
-    else 
-    {
-        cut_offset = 2;
-    }
-    setSEL2pos(_next_extruder + cut_offset);
-    engage_filament_pulley(true);
-    moveSmooth(AX_PUL, pulCutStepsPre, filament_lookup_table[5][filament_type[_next_extruder]], false, false, GLOBAL_ACC);          // Set filament for the chop :)
-    int _selector_steps = (selectorStepPositionsFromHome[activeSelPos - cut_offset] - selectorStepPositionsFromHome[activeSelPos]);
-    moveSmooth(AX_SEL, _selector_steps, filament_lookup_table[0][filament_type[_next_extruder]], false, false, GLOBAL_ACC);         // The CHOP!!
-    moveSmooth(AX_PUL, pulCutStepsPost, filament_lookup_table[5][filament_type[_next_extruder]], false, false, GLOBAL_ACC);         // re-park filament post chop
-    engage_filament_pulley(false);
-    homeSelectorSmooth();
-    setSEL2pos(_next_extruder);
 }
