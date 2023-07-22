@@ -169,7 +169,7 @@ void loop()
         {
         case ADC_Btn_Right:
             engage_filament_pulley(true);
-            moveSmooth(AX_PUL, (EJECT_PULLEY_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], false, false, GLOBAL_ACC);
+            moveSmooth(AX_PUL, (EJECT_PULLEY_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], GLOBAL_ACC);
             engage_filament_pulley(false);
             break;
         default:
@@ -329,21 +329,21 @@ void fixTheProblem(bool showPrevious)
                     engage_filament_pulley(true);
                     if (isFilamentLoaded()) 
                     {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
                         {
-                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC); // move to filament parking position
+                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC); // move to filament parking position
                         }
                     } 
                     else 
                     {
-                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]], false);
+                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[active_extruder]]);
                     }
                     engage_filament_pulley(false);                 
                     disableStepper(AX_IDL);
                     break;
                 case ADC_Btn_Left:
                     engage_filament_pulley(true);
-                    moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
+                    moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);                   
                     disableStepper(AX_IDL);
                     break;
@@ -370,21 +370,21 @@ void fixTheProblem(bool showPrevious)
                     engage_filament_pulley(true);
                     if (isFilamentLoaded()) 
                     {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[5][filament_type[previous_extruder]]*1.8, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
                         {
-                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[previous_extruder]], filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false, false, GLOBAL_ACC); // move to filament parking position
+                            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[previous_extruder]], filament_lookup_table[5][filament_type[previous_extruder]]*1.8, GLOBAL_ACC); // move to filament parking position
                         }
                     } 
                     else 
                     {
-                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
+                        moveSmooth(AX_PUL, -300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8);
                     }
                     engage_filament_pulley(false);
                     disableStepper(AX_IDL);
                     break;
                 case ADC_Btn_Left:
                     engage_filament_pulley(true);
-                    moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8, false);
+                    moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);
                     disableStepper(AX_IDL);
                     break;

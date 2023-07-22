@@ -39,13 +39,13 @@ bool feed_filament(void)
         engage_filament_pulley(true);
         while (!_loaded) 
         {
-            if (moveSmooth(AX_PUL, 4000, filament_lookup_table[5][filament_type[active_extruder]], false, true, GLOBAL_ACC, true) == MR_Success) 
+            if (moveSmooth(AX_PUL, 4000, filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success) 
             {
                 delay(10);
-                moveSmooth(AX_PUL, 500, filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC);
-                moveSmooth(AX_PUL, -500, filament_lookup_table[5][filament_type[active_extruder]], false, true, GLOBAL_ACC, true);
+                moveSmooth(AX_PUL, 500, filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC);
+                moveSmooth(AX_PUL, -500, filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC, true);
                 delay(10);
-                moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC);
+                moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC);
                 clr_leds();
                 set_led(1 << 2 * (4 - active_extruder));
                 _loaded = true;
@@ -56,14 +56,14 @@ bool feed_filament(void)
                 if (_c < 1)                      // Two attempt to load then give up
                 {
                     delay(10);
-                    moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC);
+                    moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC);
                     fixTheProblem();
                     engage_filament_pulley(true);
                 } 
                 else 
                 {
                     delay(10);
-                    moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC);
+                    moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC);
                     engage_filament_pulley(false);
                     _loaded = false;
                     break;
@@ -212,21 +212,21 @@ void load_filament_withSensor(uint16_t setupBowLen)
 
         // load filament until FINDA senses end of the filament, means correctly loaded into the selector
         // we can expect something like 570 steps to get in sensor, try 1000 incase user is feeding to pulley
-        if (moveSmooth(AX_PUL, 2000, filament_lookup_table[5][filament_type[active_extruder]], false, false, GLOBAL_ACC, true) == MR_Success) // Move to Pulley
+        if (moveSmooth(AX_PUL, 2000, filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success) // Move to Pulley
         {
             txFINDAStatus();
             if (setupBowLen != 0) 
             {
-                moveSmooth(AX_PUL, setupBowLen, filament_lookup_table[0][filament_type[active_extruder]], false, false, filament_lookup_table[1][filament_type[active_extruder]]); // Load filament down to MK3-FSensor
+                moveSmooth(AX_PUL, setupBowLen, filament_lookup_table[0][filament_type[active_extruder]], filament_lookup_table[1][filament_type[active_extruder]]); // Load filament down to MK3-FSensor
                 _retry = true;
             } 
             else 
             {
-                moveSmooth(AX_PUL, 1000, filament_lookup_table[5][filament_type[active_extruder]], false, false); // Go 1000 steps more to get past FINDA before ramping.
-                moveSmooth(AX_PUL, BOWDEN_LENGTH - 1000, filament_lookup_table[0][filament_type[active_extruder]], false, false, filament_lookup_table[1][filament_type[active_extruder]]);      // Load filament down to near MK3-FSensor
+                moveSmooth(AX_PUL, 1000, filament_lookup_table[5][filament_type[active_extruder]]); // Go 1000 steps more to get past FINDA before ramping.
+                moveSmooth(AX_PUL, BOWDEN_LENGTH - 1000, filament_lookup_table[0][filament_type[active_extruder]], filament_lookup_table[1][filament_type[active_extruder]]);      // Load filament down to near MK3-FSensor
                 txPayload((unsigned char*)"IRSEN");
                 IR_SENSOR   = false;
-                if (moveSmooth(AX_PUL, filament_lookup_table[4][filament_type[active_extruder]], 200, false, false, GLOBAL_ACC, false, true) == MR_Success) 
+                if (moveSmooth(AX_PUL, filament_lookup_table[4][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
                     clr_leds(); //set_led(0x000);                                                 // Clear all 10 LEDs on MMU unit
                     set_led(1 << 2 * (4 - active_extruder));
@@ -269,11 +269,11 @@ void unload_filament_withSensor(uint8_t extruder)
     unsigned char txUFR[5] = {'U', mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
     txPayload(txUFR);
     delay(40);
-    moveSmooth(AX_PUL, -(30*AX_PUL_STEP_MM_Ratio), filament_lookup_table[8][filament_type[extruder]], false, false, GLOBAL_ACC);
+    moveSmooth(AX_PUL, -(30*AX_PUL_STEP_MM_Ratio), filament_lookup_table[8][filament_type[extruder]], GLOBAL_ACC);
 
     if (isFilamentLoaded()) 
     {
-        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH -(20*AX_PUL_STEP_MM_Ratio)) * -1), filament_lookup_table[0][filament_type[extruder]], false, false, filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
+        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH -(20*AX_PUL_STEP_MM_Ratio)) * -1), filament_lookup_table[0][filament_type[extruder]], filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
         { 
             goto loop;
         }
@@ -281,10 +281,10 @@ void unload_filament_withSensor(uint8_t extruder)
         {
             unloadFINDACheckSteps = -5000;
         }
-        if (moveSmooth(AX_PUL, unloadFINDACheckSteps, filament_lookup_table[5][filament_type[extruder]], false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+        if (moveSmooth(AX_PUL, unloadFINDACheckSteps, filament_lookup_table[5][filament_type[extruder]], GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
         {
             loop:
-            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[extruder]], filament_lookup_table[5][filament_type[extruder]], false, false, GLOBAL_ACC); // move to filament parking position
+            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[extruder]], filament_lookup_table[5][filament_type[extruder]], GLOBAL_ACC); // move to filament parking position
         } 
         else if (isFilamentLoaded()) 
         {
@@ -331,7 +331,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         unsigned char txUFR[5] = {'U',mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
         txPayload(txUFR);
         delay(40);
-        if (moveSmooth(AX_PUL, (distance * -1), filament_lookup_table[0][filament_type[extruder]], false, false, filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
+        if (moveSmooth(AX_PUL, (distance * -1), filament_lookup_table[0][filament_type[extruder]], filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
         {
             goto loop;
         }
@@ -339,10 +339,10 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         {
             unloadFINDACheckSteps = -5000;
         }
-        if (moveSmooth(AX_PUL, unloadFINDACheckSteps, filament_lookup_table[5][filament_type[extruder]], false, false, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
+        if (moveSmooth(AX_PUL, unloadFINDACheckSteps, filament_lookup_table[5][filament_type[extruder]], GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
         {
             loop:
-            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[extruder]], filament_lookup_table[5][filament_type[extruder]], false, false, GLOBAL_ACC);                     // move to filament parking position
+            moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[extruder]], filament_lookup_table[5][filament_type[extruder]], GLOBAL_ACC);   // move to filament parking position
         } 
         else if (isFilamentLoaded()) 
         {

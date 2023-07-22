@@ -46,7 +46,7 @@ bool move_idler(int steps, uint16_t speed)
     {
         speed = MAX_SPEED_IDLER;
     }
-    if (moveSmooth(AX_IDL, steps, speed, true, true, GLOBAL_ACC) == MR_Failed) 
+    if (moveSmooth(AX_IDL, steps, speed, GLOBAL_ACC) == MR_Failed) 
     {
         return false;
     }
@@ -55,7 +55,7 @@ bool move_idler(int steps, uint16_t speed)
 
 void move_pulley(int steps, uint16_t speed)
 {
-    moveSmooth(AX_PUL, steps, speed, false, true);
+    moveSmooth(AX_PUL, steps, speed);
 }
 
 /**
@@ -125,14 +125,14 @@ void disableStepper(int axis)
 
 MotReturn homeIdlerSmooth(bool toLastFilament)
 {
-    moveSmooth(AX_IDL, -250, MAX_SPEED_IDLER, false);
+    moveSmooth(AX_IDL, -250, MAX_SPEED_IDLER);
     for (uint8_t c = 2; c > 0; c--) // touch end 2 times
     {
         #warning TODO: Implement homing
         //tmc2130_init(HOMING_MODE);  // trinamic, homing
-        moveSmooth(AX_IDL, 2600, 6350, false, true);
+        moveSmooth(AX_IDL, 2600, 6350);
         //tmc2130_init(tmc2130_mode);  // trinamic, homing
-        if (c > 1) moveSmooth(AX_IDL, -600, MAX_SPEED_IDLER, false);
+        if (c > 1) moveSmooth(AX_IDL, -600, MAX_SPEED_IDLER);
         delay(50);
     }
     isIdlerParked = false;
@@ -153,13 +153,9 @@ MotReturn homeIdlerSmooth(bool toLastFilament)
  * @param axis, index of axis, use AX_PUL or AX_IDL
  * @param steps, number of micro steps to move
  * @param speed, max. speed
- * @param rehomeOnFail: flag, by default true, set to false in homing commands, to prevent endless loops and stack overflow.
  * @return
  */
-#warning TODO: Remove parameter withStallDetection
-MotReturn moveSmooth(uint8_t axis, int steps, int speed, bool rehomeOnFail,
-                     bool withStallDetection, float acc,
-                     bool withFindaDetection, bool withIR_SENSORDetection)
+MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFindaDetection, bool withIR_SENSORDetection)
 {
     enableStepper(axis);
     startWakeTime = millis();
