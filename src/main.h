@@ -11,14 +11,11 @@
 #include "mmctl.h"
 #include "motion.h"
 #include "Buttons.h"
-#include "Detect12V24V.h"
 #include "permanent_storage.h"
 #include "config.h"
 #include "uart.h"
 #include <avr/wdt.h>
 #include <inttypes.h>
-
-#define isFilamentLoaded() digitalRead(A1)
 
 void manual_extruder_selector();
 

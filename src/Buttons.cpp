@@ -7,8 +7,8 @@
 #include "motion.h"
 #include "permanent_storage.h"
 #include "uart.h"
+#include "config.h"
 
-const uint8_t ButtonPin = A2; // we use an analog input with different DC-levels for each button
 uint16_t countL = 0;
 uint16_t countM = 0;
 uint16_t countR = 0;
@@ -254,6 +254,7 @@ void settings_bowden_length()
 }
 
 //! @brief Is button pushed?
+//! we use an analog input with different DC-levels for each button
 //!
 //! @return button pushed
 uint8_t buttonClicked()
@@ -262,7 +263,7 @@ uint8_t buttonClicked()
     uint8_t button = ADC_Btn_None;
   loop:
     uint16_t z = 0;
-    for (int i=0; i < 4; i++) z += analogRead(ButtonPin);
+    for (int i=0; i < 4; i++) z += analogRead(PIN_BUTTONS);
     z = z / 4;
     if      (z < 260 && z > 200) button = ADC_Btn_Left;
     else if (z < 160 && z > 100) button = ADC_Btn_Middle;

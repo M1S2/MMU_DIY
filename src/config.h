@@ -43,12 +43,17 @@
 #define PIN_STP_IDL_HIGH (PORTD |= 0x40)
 #define PIN_STP_IDL_LOW (PORTD &= ~0x40)
 
-#define PIN_PUL_STP_HIGH (PORTD |= 0x10)        // Pin PD4
-#define PIN_PUL_STP_LOW (PORTD &= ~0x10)        // Pin PD4
-#define PIN_PUL_DIR_HIGH (PORTD |= 0x08)        // Pin PD3
-#define PIN_PUL_DIR_LOW (PORTD &= ~0x08)        // Pin PD3
-#define PIN_PUL_EN_HIGH (PORTD |= 0x04)         // Pin PD2
-#define PIN_PUL_EN_LOW (PORTD &= ~0x04)         // Pin PD2
+#define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5
+#define PIN_PUL_DIR_LOW (PORTC &= ~0x20)        // Pin PC5
+#define PIN_PUL_STP_HIGH (PORTC |= 0x40)        // Pin PC6
+#define PIN_PUL_STP_LOW (PORTC &= ~0x40)        // Pin PC6
+#define PIN_PUL_EN_HIGH (PORTC |= 0x80)         // Pin PC7
+#define PIN_PUL_EN_LOW (PORTC &= ~0x80)         // Pin PC7
+
+#define PIN_FINDA       A0
+#define isFilamentLoaded() digitalRead(PIN_FINDA)
+
+#define PIN_BUTTONS     A1
 
 // signals (from interrupts to main loop)
 #define SIG_ID_BTN 1 // any button changed
