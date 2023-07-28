@@ -26,9 +26,9 @@ void unload_filament_withSensor(uint8_t extruder = active_extruder);
 void unload_filament_forSetup(uint16_t distance, uint8_t extruder = active_extruder);
 void load_filament_into_extruder();
 void home(bool doToolSync = false);
-bool set_positions(uint8_t _next_extruder, bool update_extruders = false);
+void set_positions(uint8_t _next_extruder, bool update_extruders = false);
 void set_idler_toLast_positions(uint8_t _next_extruder);
-bool setIDL2pos(uint8_t _next_extruder);
+void setIDL2pos(uint8_t _next_extruder);
 void eject_filament(uint8_t extruder);
 void recover_after_eject();
 

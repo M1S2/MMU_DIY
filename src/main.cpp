@@ -5,7 +5,6 @@
 // public variables:
 bool MMU2SLoading = false;
 bool m600RunoutChanging = false;
-//bool duplicateTCmd = false;
 bool inErrorState = false;
 long startWakeTime;
 void process_commands(void);
@@ -49,7 +48,8 @@ void setup()
     UBRR1L = BAUD_PRESCALE; // Load lower 8-bits of the baud rate value into the low byte of the UBRR register
     UCSR1B |= (1 << RXCIE1);
 
-    PORTF |= 0x20; // Set Button ADC Pin High
+    PORTA |= 0x02; // Set Button ADC Pin High
+    servoIdler.attach(PIN_IDL_SERVO);
     
     sei();
 
@@ -59,7 +59,7 @@ void setup()
     led_blink(4);
 
     clr_leds();
-    homeIdlerSmooth(true);
+    homeIdler(true);
     if (active_extruder != EXTRUDERS) txPayload((unsigned char*)"STR--");
 }
 
@@ -169,7 +169,7 @@ void loop()
         {
         case ADC_Btn_Right:
             engage_filament_pulley(true);
-            moveSmooth(AX_PUL, (EJECT_PULLEY_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], GLOBAL_ACC);
+            moveSmooth(AX_PUL, (PULLEY_EJECT_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], GLOBAL_ACC);
             engage_filament_pulley(false);
             break;
         default:
@@ -433,7 +433,6 @@ void fixIdlCrash(void)
         } 
         else set_led(1 << 2 * (4 - active_extruder));
     }
-    idlSGFailCount = 0;
     inErrorState = false;
     set_idler_toLast_positions(active_extruder);
 }

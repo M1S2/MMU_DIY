@@ -25,7 +25,6 @@
 #define UART0_BDR 115200
 
 // speeds and accelerations
-#define MAX_SPEED_IDL  5000 // micro steps
 #define GLOBAL_ACC    80000 // micro steps / s²
 
 
@@ -40,8 +39,7 @@
 
 #define AX_PUL_STEP_MM_Ratio          19
 
-#define PIN_STP_IDL_HIGH (PORTD |= 0x40)
-#define PIN_STP_IDL_LOW (PORTD &= ~0x40)
+#define PIN_IDL_SERVO 22    // PC4                       // Pin PC4
 
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5
 #define PIN_PUL_DIR_LOW (PORTC &= ~0x20)        // Pin PC5
@@ -96,6 +94,11 @@
 
 // number of extruders
 #define EXTRUDERS 5
+
+// Calibration
+#define PULLEY_EJECT_STEPS          2000
+#define IDLER_NEXT_FILAMENT_STEPS   30      // angle that the idler must rotate between two consecutive filaments
+#define IDLER_HOME_ANGLE_ABSOLUTE   0       // absolute angle in degree at which the idler is homed
 
 // CONFIG
 //#define _CONFIG_H

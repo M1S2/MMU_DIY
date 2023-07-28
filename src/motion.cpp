@@ -10,7 +10,6 @@
 // public variables:
 BowdenLength bowdenLength;
 uint16_t BOWDEN_LENGTH = bowdenLength.get();
-uint16_t MAX_SPEED_IDLER    =  MAX_SPEED_IDL; // micro steps
 int8_t filament_type[EXTRUDERS] = { 0, 0, 0, 0, 0};
 int filament_lookup_table[9][3] =
 {{TYPE_0_MAX_SPPED_PUL,               TYPE_1_MAX_SPPED_PUL,               TYPE_2_MAX_SPPED_PUL},
@@ -24,49 +23,25 @@ int filament_lookup_table[9][3] =
  {TYPE_0_UnloadSpeed,                 TYPE_1_UnloadSpeed,                 TYPE_2_UnloadSpeed}
 };
 
-// private constants:
-const uint8_t IDLER_PARKING_STEPS = (355 / 2) + 40;      // 217
-const uint16_t EJECT_PULLEY_STEPS = 2000;
-
-const int idlerStepPositionsFromHome[EXTRUDERS+1] = {-130, -485, -840, -1195, -1550, 0};
-
-uint8_t idlSGFailCount = 0;
+Servo servoIdler;
+int currentServoAngle = 0;
 
 // private functions:
-static uint16_t set_idler_direction(int steps);
 static uint16_t set_pulley_direction(int steps);
 
 /**
  * @brief move_idler
- * @param steps, number of micro steps
+ * @param steps, delta angle by which the servo is rotated
  */
-bool move_idler(int steps, uint16_t speed)
+void move_idler(int steps)
 {
-    if (speed > MAX_SPEED_IDLER)
-    {
-        speed = MAX_SPEED_IDLER;
-    }
-    if (moveSmooth(AX_IDL, steps, speed, GLOBAL_ACC) == MR_Failed) 
-    {
-        return false;
-    }
-    return true;
+    currentServoAngle += steps;
+    servoIdler.write(currentServoAngle);
 }
 
 void move_pulley(int steps, uint16_t speed)
 {
     moveSmooth(AX_PUL, steps, speed);
-}
-
-/**
- * @brief set_idler_direction
- * @param steps: positive = towards engaging filament nr 1,
- * negative = towards engaging filament nr 5.
- * @return abs(steps)
- */
-uint16_t set_idler_direction(int steps)
-{
-    #warning No implementation. Delete this method.
 }
 
 /**
@@ -123,18 +98,11 @@ void disableStepper(int axis)
     }
 }
 
-MotReturn homeIdlerSmooth(bool toLastFilament)
+void homeIdler(bool toLastFilament)
 {
-    moveSmooth(AX_IDL, -250, MAX_SPEED_IDLER);
-    for (uint8_t c = 2; c > 0; c--) // touch end 2 times
-    {
-        #warning TODO: Implement homing
-        //tmc2130_init(HOMING_MODE);  // trinamic, homing
-        moveSmooth(AX_IDL, 2600, 6350);
-        //tmc2130_init(tmc2130_mode);  // trinamic, homing
-        if (c > 1) moveSmooth(AX_IDL, -600, MAX_SPEED_IDLER);
-        delay(50);
-    }
+    currentServoAngle = IDLER_HOME_ANGLE_ABSOLUTE;
+    move_idler(0);
+
     isIdlerParked = false;
     activeIdlPos = EXTRUDERS;
     if (toLastFilament) 
@@ -145,12 +113,11 @@ MotReturn homeIdlerSmooth(bool toLastFilament)
         setIDL2pos(active_extruder);
         engage_filament_pulley(false);
     }
-    return MR_Success;
 }
 
 /**
  * @brief moveTest
- * @param axis, index of axis, use AX_PUL or AX_IDL
+ * @param axis, index of axis, use AX_PUL
  * @param steps, number of micro steps to move
  * @param speed, max. speed
  * @return
@@ -172,9 +139,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
     {
         case AX_PUL:
             stepsLeft = set_pulley_direction(steps);
-            break;
-        case AX_IDL:
-            stepsLeft = set_idler_direction(steps);
             break;
     }
 
@@ -207,10 +171,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
                 IR_SENSOR = false;
                 return MR_Success;
             }
-            break;
-        case AX_IDL:
-            PIN_STP_IDL_HIGH;
-            PIN_STP_IDL_LOW;
             break;
         }
 
@@ -255,12 +215,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
         }
         break;
         }
-    }
-    switch (axis) 
-    {
-    case AX_IDL:
-        idlSGFailCount = 0;
-        break;
     }
     return ret;
 }

@@ -118,10 +118,7 @@ void toolChange(int new_extruder)
         } 
         else if (!homedOnUnload) 
         {
-            if (!set_positions(active_extruder, true)) 
-            {
-                home(true);
-            }
+            set_positions(active_extruder, true);
         }
         toolChanges++;
         trackToolChanges++;
@@ -181,7 +178,7 @@ void eject_filament(uint8_t extruder)
     engage_filament_pulley(true);
 
     // push filament forward
-    move_pulley(EJECT_PULLEY_STEPS, filament_lookup_table[5][filament_type[active_extruder]]);
+    move_pulley(PULLEY_EJECT_STEPS, filament_lookup_table[5][filament_type[active_extruder]]);
 
     // unpark idler so user can easily remove filament
     engage_filament_pulley(false);
@@ -397,12 +394,12 @@ void engage_filament_pulley(bool engage)
 {
     if (isIdlerParked && engage)  // get idler in contact with filament
     {
-        move_idler(IDLER_PARKING_STEPS);
+        move_idler(IDLER_NEXT_FILAMENT_STEPS);
         isIdlerParked = false;
     } 
     else if (!isIdlerParked && !engage)  // park idler so filament can move freely
     {
-        move_idler(IDLER_PARKING_STEPS * -1);
+        move_idler(IDLER_NEXT_FILAMENT_STEPS * -1);
         isIdlerParked = true;
     }
 }
@@ -410,7 +407,7 @@ void engage_filament_pulley(bool engage)
 void home(bool doToolSync)
 {
     bool previouslyEngaged = !isIdlerParked;
-    homeIdlerSmooth();
+    homeIdler();
 
     clr_leds();
     set_led(0x155);       // All five red
@@ -432,9 +429,8 @@ void home(bool doToolSync)
     }
 }
 
-bool set_positions(uint8_t _next_extruder, bool update_extruders)
+void set_positions(uint8_t _next_extruder, bool update_extruders)
 {
-    bool _return0 = false;
     if (update_extruders) 
     {
         previous_extruder = active_extruder;
@@ -449,41 +445,25 @@ bool set_positions(uint8_t _next_extruder, bool update_extruders)
     }
     else 
     {
-        _return0 = setIDL2pos(_next_extruder);
-    }
-    if (!_return0)
-    {
-        return false;
-    }
-    else 
-    {
-        return true;
+        setIDL2pos(_next_extruder);
     }
 }
 
-bool setIDL2pos(uint8_t _next_extruder)
+void setIDL2pos(uint8_t _next_extruder)
 {
-    bool _return = false;
     if (_next_extruder == EXTRUDERS)
     {
         _next_extruder -= 1;
     }
-    int _idler_steps = (idlerStepPositionsFromHome[_next_extruder] - idlerStepPositionsFromHome[activeIdlPos]);
-    if (move_idler(_idler_steps)) 
-    { 
-        activeIdlPos = _next_extruder; 
-        _return = true; 
-    }
-    return _return;
+    int _idler_steps = (_next_extruder - activeIdlPos) * IDLER_NEXT_FILAMENT_STEPS;
+    move_idler(_idler_steps);
+    activeIdlPos = _next_extruder; 
 }
 
 void set_idler_toLast_positions(uint8_t _next_extruder)
 {
     bool previouslyEngaged = !isIdlerParked;
-    homeIdlerSmooth();
-    if (!setIDL2pos(_next_extruder))
-    {
-        fixTheProblem();
-    }
+    homeIdler();
+    setIDL2pos(_next_extruder);
     engage_filament_pulley(previouslyEngaged);
 }
