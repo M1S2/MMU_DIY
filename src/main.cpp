@@ -35,18 +35,10 @@ void process_commands(void);
 //! @n b - blinking
 void setup()
 {
-    permanentStorageInit();
+    //permanentStorageInit();
     startWakeTime = millis();
     
     led_blink(1);
-    //Setup USART1 Interrupt Registers
-    UCSR1A = (0 << U2X1); // baudrate multiplier
-    UCSR1B = (1 << RXEN1) | (1 << TXEN1) | (0 << UCSZ12);   // Turn on the transmission and reception circuitry
-    UCSR1C = (0 << UMSEL11) | (0 << UMSEL10)| (0 << UPM11) | (0 << UPM10) | (1 << USBS1) | (1 << UCSZ11) | (1 << UCSZ10); // Use 8-bit character sizes
-    //UCSR1D = (0 << CTSEN) | (0 << RTSEN); // Disable flow control
-    UBRR1H = (BAUD_PRESCALE >> 8); // Load upper 8-bits of the baud rate value into the high byte of the UBRR register
-    UBRR1L = BAUD_PRESCALE; // Load lower 8-bits of the baud rate value into the low byte of the UBRR register
-    UCSR1B |= (1 << RXCIE1);
 
     PORTA |= 0x02; // Set Button ADC Pin High
     servoIdler.attach(PIN_IDL_SERVO);
@@ -54,12 +46,15 @@ void setup()
     sei();
 
     led_blink(2);
+    initUart();
     led_blink(3);
     led_blink(4);
 
     clr_leds();
     homeIdler(true);
     if (active_extruder != EXTRUDERS) txPayload((unsigned char*)"STR--");
+
+    sendData("start\n");
 }
 
 //! @brief Select filament menu
@@ -146,6 +141,7 @@ void manual_extruder_selector()
 void loop()
 {
     process_commands();    
+
     if (!isPrinting && !isEjected) 
     {
         manual_extruder_selector();
@@ -184,13 +180,25 @@ void loop()
 
 void process_commands(void)
 {
+/*    if(confirmedPayload)
+    {
+        char temp[20];
+        sprintf(temp,"%c %c %c\n", rxData1, rxData2, rxData3);
+        sendData(temp);
+
+        rxData1 = 0;
+        rxData2 = 0;
+        rxData3 = 0;
+        confirmedPayload = false;
+    }
+    return;*/
+
     cli();
+
     // Copy volitale vars as local
     unsigned char tData1 = rxData1;
     unsigned char tData2 = rxData2;
     unsigned char tData3 = rxData3;
-    // Currently unused. unsigned char tData4 = rxData4;
-    // Currently unused. unsigned char tData5 = rxData5;
     bool confPayload = confirmedPayload;
     if (confPayload) 
     {
@@ -198,7 +206,7 @@ void process_commands(void)
     }
     else 
     { 
-        tData1 = ' '; tData2 = ' '; tData3 = ' '; // Currently unused. tData4 = ' '; tData5 = ' ';
+        tData1 = ' '; tData2 = ' '; tData3 = ' ';
     } 
     sei();
     if (inErrorState) return;
