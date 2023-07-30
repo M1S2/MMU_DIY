@@ -54,7 +54,6 @@ void setup()
     sei();
 
     led_blink(2);
-    spi_init();
     led_blink(3);
     led_blink(4);
 
