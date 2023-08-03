@@ -55,11 +55,11 @@ void setupMenu()
         set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * _menu));
         if (_menu != _menu_last_cycle) 
         {
-            if (_menu == 0) txPayload((unsigned char*)"X1---");
-            else if (_menu == 1) txPayload((unsigned char*)"X2---");
-            else if (_menu == 2) txPayload((unsigned char*)"X5---");
-            else if (_menu == 3) txPayload((unsigned char*)"X6---");
-            else if (_menu == 4) txPayload((unsigned char*)"X7---");
+            if (_menu == 0) txPayload((char*)"X1---");
+            else if (_menu == 1) txPayload((char*)"X2---");
+            else if (_menu == 2) txPayload((char*)"X5---");
+            else if (_menu == 3) txPayload((char*)"X6---");
+            else if (_menu == 4) txPayload((char*)"X7---");
         }
         _menu_last_cycle = _menu;
 
@@ -94,7 +94,7 @@ void setupMenu()
                 break;
             case 4: // exit menu
                 set_positions(EXTRUDERS - 1, true);
-                txPayload((unsigned char*)"ZZR--");
+                txPayload((char*)"ZZR--");
                 _exit = true;
                 break;
             }
@@ -160,7 +160,7 @@ void settings_bowden_length()
     uint8_t tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
     unsigned char tempW[5] = {'W', tempBowLenUpper, tempBowLenLower, BLK, BLK};
     unsigned char tempV[5] = {0,0,0,BLK,BLK};
-    txPayload(tempW);
+    txPayload((char*)tempW);
     do 
     {
         delay(10);
@@ -177,7 +177,7 @@ void settings_bowden_length()
                 }
                 bowdenLength.~BowdenLength();
                 BOWDEN_LENGTH = BowdenLength::get();
-                txPayload((unsigned char*)"ZZR--");
+                txPayload((char*)"ZZR--");
                 break;
             case S::Extruded:
                 if (bowdenLength.increase())
@@ -188,7 +188,7 @@ void settings_bowden_length()
                     tempV[0] = 'V';
                     tempV[1] = tempBowLenUpper;
                     tempV[2] = tempBowLenLower;
-                    txPayload(tempV);
+                    txPayload((char*)tempV);
                     delay(200);
                 }
                 break;
@@ -206,7 +206,7 @@ void settings_bowden_length()
                 tempV[0] = 'V';
                 tempV[1] = tempBowLenUpper;
                 tempV[2] = tempBowLenLower;
-                txPayload(tempV);
+                txPayload((char*)tempV);
                 load_filament_withSensor(bowdenLength.m_length);
                 break;
             case S::Extruded:
@@ -217,7 +217,7 @@ void settings_bowden_length()
                 tempW[0] = 'W';
                 tempW[1] = tempBowLenUpper;
                 tempW[2] = tempBowLenLower;
-                txPayload(tempW);
+                txPayload((char*)tempW);
                 delay(50);
                 unload_filament_forSetup(bowdenLength.m_length);
                 break;
@@ -239,7 +239,7 @@ void settings_bowden_length()
                     tempV[0] = 'V';
                     tempV[1] = tempBowLenUpper;
                     tempV[2] = tempBowLenLower;
-                    txPayload(tempV);
+                    txPayload((char*)tempV);
                     delay(200);
                 }
                 break;

@@ -67,34 +67,26 @@ ISR(USART0_RX_vect)
     }
 }
 
-void sendData(const char* str)
+void sendStringToPrinter(char* str)
 {
     for (uint8_t i = 0; i < strlen(str); i++) 
     {
         loop_until_bit_is_set(UCSR0A, UDRE0); // Do nothing until UDR is ready for more data to be written to it
         UDR0 = (int)str[i];
     }
+    loop_until_bit_is_set(UCSR0A, UDRE0); // Do nothing until UDR is ready for more data to be written to it
+    UDR0 = (int)'\n';
 }
 
-void txPayload(unsigned char payload[])
+void txPayload(char* payload)
 {
-    //loop_until_bit_is_set(UCSR1A, UDRE0);     // Do nothing until UDR is ready for more data to be written to it
-    //UDR0 = 0x7F;
-    for (uint8_t i = 0; i < 5; i++) 
-    {
-        loop_until_bit_is_set(UCSR0A, UDRE0); // Do nothing until UDR is ready for more data to be written to it
-        UDR0 = (0xFF & (int)payload[i]);
-    }
-    //loop_until_bit_is_set(UCSR0A, UDRE0);     // Do nothing until UDR is ready for more data to be written to it
-    //UDR0 = 0xF7;
+    #warning This should be disabled when development is finished (when used with Marlin FW). Because Marlin can't handle this.
+    sendStringToPrinter(payload);
 }
 
 void txFINDAStatus(void)
 {
-    //loop_until_bit_is_set(UCSR0A, UDRE0);     // Do nothing until UDR is ready for more data to be written to it
-    //UDR0 = 0x06;
-    loop_until_bit_is_set(UCSR0A, UDRE0); // Do nothing until UDR is ready for more data to be written to it
-    UDR0 = (uint8_t)isFilamentLoaded();
-    //loop_until_bit_is_set(UCSR0A, UDRE0);     // Do nothing until UDR is ready for more data to be written to it
-    //UDR0 = 0xF7;
+    char tempFinda[10];
+    sprintf(tempFinda, "%hhu%s", isFilamentLoaded(), OK);
+    sendStringToPrinter(tempFinda);
 }

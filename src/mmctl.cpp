@@ -76,9 +76,9 @@ bool feed_filament(void)
     } 
     else 
     {
-        txPayload((unsigned char*)"Z1---");
+        txPayload((char*)"Z1---");
         delay(1500);
-        txPayload((unsigned char*)"ZZZ--");
+        txPayload((char*)"ZZZ--");
     }
     return _loaded;
 }
@@ -125,7 +125,7 @@ void toolChange(int new_extruder)
         uint8_t toolChangesUpper = (0xFF & (toolChanges >> 8));
         uint8_t toolChangesLower = (0xFF & toolChanges);
         unsigned char txTCU[5] = {'T',toolChangesUpper, toolChangesLower, BLK, BLK};
-        txPayload(txTCU);
+        txPayload((char*)txTCU);
         clr_leds();
         set_led(2 << 2 * (4 - active_extruder));
         load_filament_withSensor();
@@ -221,7 +221,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
             {
                 moveSmooth(AX_PUL, 1000, filament_lookup_table[5][filament_type[active_extruder]]); // Go 1000 steps more to get past FINDA before ramping.
                 moveSmooth(AX_PUL, BOWDEN_LENGTH - 1000, filament_lookup_table[0][filament_type[active_extruder]], filament_lookup_table[1][filament_type[active_extruder]]);      // Load filament down to near MK3-FSensor
-                txPayload((unsigned char*)"IRSEN");
+                txPayload((char*)"IRSEN");
                 IR_SENSOR   = false;
                 if (moveSmooth(AX_PUL, filament_lookup_table[4][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
@@ -231,7 +231,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
                 }
                 else
                 {
-                    txPayload((unsigned char*)"ZL2"); // Report Loading failed @ IR_SENSOR
+                    txPayload((char*)"ZL2"); // Report Loading failed @ IR_SENSOR
                     fixTheProblem();
                 }
             }
@@ -245,7 +245,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
             }
             else
             {
-                txPayload((unsigned char*)"ZL1--"); // Report Loading failed @ FINDA
+                txPayload((char*)"ZL1--"); // Report Loading failed @ FINDA
                 fixTheProblem();
             }
         }
@@ -264,7 +264,7 @@ void unload_filament_withSensor(uint8_t extruder)
     uint8_t mmPerSecSpeedUpper = (0xFF & ((filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio) >> 8));
     uint8_t mmPerSecSpeedLower = (0xFF & (filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio));
     unsigned char txUFR[5] = {'U', mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
-    txPayload(txUFR);
+    txPayload((char*)txUFR);
     delay(40);
     moveSmooth(AX_PUL, -(30*AX_PUL_STEP_MM_Ratio), filament_lookup_table[8][filament_type[extruder]], GLOBAL_ACC);
 
@@ -285,7 +285,7 @@ void unload_filament_withSensor(uint8_t extruder)
         } 
         else if (isFilamentLoaded()) 
         {
-            txPayload((unsigned char*)"ZU---"); // Report Unloading failed to MK3
+            txPayload((char*)"ZU---"); // Report Unloading failed to MK3
             if (extruder != active_extruder) 
             {
                 fixTheProblem(true);
@@ -299,7 +299,7 @@ void unload_filament_withSensor(uint8_t extruder)
     }
     else
     {
-        txPayload((unsigned char*)"ZU---"); // Report Unloading failed to MK3
+        txPayload((char*)"ZU---"); // Report Unloading failed to MK3
         if (extruder != active_extruder)
         {
             fixTheProblem(true);
@@ -326,7 +326,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         uint8_t mmPerSecSpeedUpper = (0xFF & ((filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio) >> 8));
         uint8_t mmPerSecSpeedLower = (0xFF & (filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio));
         unsigned char txUFR[5] = {'U',mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
-        txPayload(txUFR);
+        txPayload((char*)txUFR);
         delay(40);
         if (moveSmooth(AX_PUL, (distance * -1), filament_lookup_table[0][filament_type[extruder]], filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
         {
@@ -343,7 +343,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         } 
         else if (isFilamentLoaded()) 
         {
-            txPayload((unsigned char*)"ZU---"); // Report Unloading failed to MK3
+            txPayload((char*)"ZU---"); // Report Unloading failed to MK3
             if (extruder != active_extruder)
             {
                 fixTheProblem(true);
@@ -437,7 +437,7 @@ void set_positions(uint8_t _next_extruder, bool update_extruders)
         active_extruder = _next_extruder;
         FilamentLoaded::set(active_extruder);
         unsigned char temp[5] = {'A', 'E', (uint8_t)active_extruder, BLK, BLK};
-        txPayload(temp);    
+        txPayload((char*)temp);    
     }
     if (!isHomed)
     {

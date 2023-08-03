@@ -4,9 +4,11 @@
 
 #define USART_BAUDRATE  115200UL
 #define MMU2S_F_CPU     16000000UL
-#define BAUD_PRESCALE (((MMU2S_F_CPU / (USART_BAUDRATE * 8UL))) - 1)
-#define OK            (unsigned char*)"OK---" // 'OK-' ASCII for  OK CMD tx
-#define BLK           0x2D  // Blank data filler
+#define BAUD_PRESCALE   (((MMU2S_F_CPU / (USART_BAUDRATE * 8UL))) - 1)
+#define OK              (char*)"ok"
+#define BLK             0x2D  // Blank data filler
+
+//#define SEND_TO_PRINTER(S) sendString((char*)S "\n");
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -18,8 +20,8 @@ extern volatile unsigned char rxData1, rxData2, rxData3, rxData4, rxData5;
 extern volatile bool confirmedPayload, IR_SENSOR;
 
 void initUart();
-void sendData(const char* str);
-extern void txPayload(unsigned char*);
+void sendStringToPrinter(char* str);                 // send the string (with additional newline characters) to the printer
+extern void txPayload(char*);
 extern void txFINDAStatus(void);
 
 #endif //_UART_H

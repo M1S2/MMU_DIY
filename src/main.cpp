@@ -52,9 +52,9 @@ void setup()
 
     clr_leds();
     homeIdler(true);
-    if (active_extruder != EXTRUDERS) txPayload((unsigned char*)"STR--");
+    if (active_extruder != EXTRUDERS) txPayload((char*)"STR--");
 
-    sendData("start\n");
+    sendStringToPrinter("start");
 }
 
 //! @brief Select filament menu
@@ -93,10 +93,10 @@ void manual_extruder_selector()
         {
         case ADC_Btn_Right:
             if (active_extruder < EXTRUDERS) set_positions(active_extruder + 1, true);
-            if (active_extruder == EXTRUDERS) txPayload((unsigned char*)"X1---");
+            if (active_extruder == EXTRUDERS) txPayload((char*)"X1---");
             break;
         case ADC_Btn_Left:
-            if (active_extruder == EXTRUDERS) txPayload((unsigned char*)"ZZZ--");
+            if (active_extruder == EXTRUDERS) txPayload((char*)"ZZZ--");
             if (active_extruder > 0) set_positions(active_extruder - 1, true);
             break;
         default:
@@ -109,9 +109,9 @@ void manual_extruder_selector()
         {
           case ADC_Btn_Right:
           case ADC_Btn_Left:
-            txPayload((unsigned char*)"Z1---");
+            txPayload((char*)"Z1---");
             delay(1000);
-            txPayload((unsigned char*)"ZZZ--");
+            txPayload((char*)"ZZZ--");
             break;
           default:
             break;
@@ -153,7 +153,7 @@ void loop()
             }
             else if (active_extruder == EXTRUDERS) 
             {
-                txPayload((unsigned char*)"SETUP");
+                txPayload((char*)"SETUP");
                 setupMenu();
             }
         }
@@ -219,7 +219,7 @@ void process_commands(void)
             m600RunoutChanging = false;
             MMU2SLoading = true;
             toolChange(tData2);
-            txPayload(OK);
+            sendStringToPrinter(OK);
         }
     } 
     else if (tData1 == 'L') 
@@ -229,16 +229,16 @@ void process_commands(void)
         {
             if (isFilamentLoaded()) 
             {
-                txPayload((unsigned char*)"Z1---");
+                txPayload((char*)"Z1---");
                 delay(1500);
-                txPayload((unsigned char*)"ZZZ--");
+                txPayload((char*)"ZZZ--");
             } 
             else 
             {
                 set_positions(tData2, true);
                 feed_filament(); // returns OK and active_extruder to update MK3
             }
-            txPayload(OK);
+            sendStringToPrinter(OK);
         }
     } 
     else if ((tData1 == 'U') && (tData2 == '0')) 
@@ -246,7 +246,7 @@ void process_commands(void)
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
         homedOnUnload = false; // Clear this flag as unload_filament_withSensor() method uses it within the 'T' cmds
-        txPayload(OK);
+        sendStringToPrinter(OK);
         isPrinting = false;
         toolChanges = 0;
         trackToolChanges = 0;
@@ -256,22 +256,25 @@ void process_commands(void)
         // Sx Starting CMD Received
         if (tData2 == '0') 
         {
-            txPayload(OK);
+            sendStringToPrinter(OK);
         } 
         else if (tData2 == '1') 
         {
-            unsigned char tempS1[5] = {'O','K',(FW_VERSION >> 8), (0xFF & FW_VERSION), BLK};
-            txPayload(tempS1);
+            char tempS1[10];
+            sprintf(tempS1, "%hu%s", FW_VERSION, OK);
+            sendStringToPrinter(tempS1);
         } 
         else if (tData2 == '2') 
         {
-            unsigned char tempS2[5] = {'O','K',(FW_BUILDNR >> 8), (0xFF & FW_BUILDNR), BLK};
-            txPayload(tempS2);
+            char tempS2[10];
+            sprintf(tempS2, "%hu%s", FW_BUILDNR, OK);
+            sendStringToPrinter(tempS2);
         } 
         else if (tData2 == '3') 
         {
-            unsigned char tempS3[5] = {'O','K',(uint8_t)active_extruder, BLK, BLK};
-            txPayload(tempS3);
+            char tempS3[10];
+            sprintf(tempS3, "%hu%s", active_extruder, OK);
+            sendStringToPrinter(tempS3);
         }
     } 
     else if (tData1 == 'F') 
@@ -280,7 +283,7 @@ void process_commands(void)
         if ((tData2 < EXTRUDERS) && (tData3 < 3)) 
         {
             filament_type[tData2] = tData3;
-            txPayload(OK);
+            sendStringToPrinter(OK);
         }
     } 
     else if ((tData1 == 'X') && (tData2 == '0')) 
@@ -294,7 +297,7 @@ void process_commands(void)
     } 
     else if ((tData1 == 'C') && (tData2 == '0')) 
     {
-        txPayload(OK);
+        sendStringToPrinter(OK);
         load_filament_into_extruder();
     } 
     else if  (tData1 == 'E') 
@@ -304,14 +307,14 @@ void process_commands(void)
         {
             m600RunoutChanging = true;
             eject_filament(tData2);
-            txPayload(OK);
+            sendStringToPrinter(OK);
         }
     } 
     else if ((tData1 == 'R') && (tData2 == '0')) 
     {
         // Rx Recover Post-Eject Filament X CMD Received
         recover_after_eject();
-        txPayload(OK);
+        sendStringToPrinter(OK);
     }
 }
 
@@ -418,7 +421,7 @@ void fixTheProblem(bool showPrevious)
     delay(100);
     
     inErrorState = false;
-    txPayload((unsigned char*)"ZZZ--"); // Clear MK3 Message
+    txPayload((char*)"ZZZ--"); // Clear MK3 Message
     home(true); // Home and return to previous active extruder
     trackToolChanges = 0;
 }
