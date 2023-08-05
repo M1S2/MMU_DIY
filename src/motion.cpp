@@ -10,7 +10,7 @@
 // public variables:
 BowdenLength bowdenLength;
 uint16_t BOWDEN_LENGTH = bowdenLength.get();
-int8_t filament_type[EXTRUDERS] = { 0, 0, 0, 0, 0};
+int8_t filament_type[NUM_SLOTS_MAX] = { 0, 0, 0, 0, 0};
 int filament_lookup_table[9][3] =
 {{TYPE_0_MAX_SPPED_PUL,               TYPE_1_MAX_SPPED_PUL,               TYPE_2_MAX_SPPED_PUL},
  {TYPE_0_ACC_FEED_PUL,                TYPE_1_ACC_FEED_PUL,                TYPE_2_ACC_FEED_PUL},
@@ -104,7 +104,7 @@ void homeIdler(bool toLastFilament)
     move_idler(0);
 
     isIdlerParked = false;
-    activeIdlPos = EXTRUDERS;
+    activeIdlPos = numSlots;
     if (toLastFilament) 
     {
         uint8_t filament = 0;

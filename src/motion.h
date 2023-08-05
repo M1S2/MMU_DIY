@@ -8,7 +8,7 @@
 #include "mmctl.h"
 #include "Servo.h"
 
-extern int8_t filament_type[EXTRUDERS];
+extern int8_t filament_type[NUM_SLOTS_MAX];
 extern int filament_lookup_table[9][3]; // [X][Y]Two-dimensional Array of extruder and used variables
 extern uint16_t BOWDEN_LENGTH;
 extern BowdenLength bowdenLength;

@@ -164,13 +164,13 @@ void eject_filament(uint8_t extruder)
 
     set_positions(extruder, true);
 #if false
-    if (active_extruder == (EXTRUDERS - 1))
+    if (active_extruder == (numSlots - 1))
     {
         setSEL2pos(0);
     }
     else
     {
-        setSEL2pos(EXTRUDERS);
+        setSEL2pos(numSlots);
     }
 #endif
     isEjected = true;
@@ -451,7 +451,7 @@ void set_positions(uint8_t _next_extruder, bool update_extruders)
 
 void setIDL2pos(uint8_t _next_extruder)
 {
-    if (_next_extruder == EXTRUDERS)
+    if (_next_extruder == numSlots)
     {
         _next_extruder -= 1;
     }

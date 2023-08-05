@@ -4,6 +4,7 @@
 #include "permanent_storage.h"
 #include "mmctl.h"
 #include "config.h"
+#include "main.h"
 #include <avr/eeprom.h>
 
 #define ARR_SIZE(ARRAY) (sizeof(ARRAY)/sizeof(ARRAY[0]))
@@ -55,7 +56,7 @@ void eepromEraseAll()
 //! @retval false invalid
 static bool validFilament(uint8_t filament)
 {
-    if (filament < (EXTRUDERS-1)) 
+    if (filament < (numSlots-1)) 
     {
         return true;
     }

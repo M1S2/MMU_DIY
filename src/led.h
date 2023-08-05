@@ -9,15 +9,11 @@
 #define _LED_H
 
 #include <inttypes.h>
+#include "light_ws2812-2.2/WS2812.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif // defined(__cplusplus)
+extern WS2812 LEDS;
 
 void set_led(uint16_t led);
 void clr_leds(void);
 
-#if defined(__cplusplus)
-}
-#endif // defined(__cplusplus)
 #endif //_LED_H

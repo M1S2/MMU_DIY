@@ -7,6 +7,7 @@ bool MMU2SLoading = false;
 bool m600RunoutChanging = false;
 bool inErrorState = false;
 long startWakeTime;
+int numSlots;
 void process_commands(void);
 
 //! @brief Initialization after reset
@@ -35,6 +36,10 @@ void process_commands(void);
 //! @n b - blinking
 void setup()
 {
+    #warning Add logic to detect the number of connected LEDs here
+    numSlots = 3; //NUM_SLOTS_DEFAULT;
+    LEDS.setOutput(PIN_LED_DIN);
+
     //permanentStorageInit();
     startWakeTime = millis();
     
@@ -52,9 +57,25 @@ void setup()
 
     clr_leds();
     homeIdler(true);
-    if (active_extruder != EXTRUDERS) txPayload((char*)"STR--");
+    if (active_extruder != numSlots) txPayload((char*)"STR--");
 
-    sendStringToPrinter("start");
+    sendStringToPrinter((char*)"start");
+
+
+
+    /*clr_leds();
+    for(int i = 0; i < numSlots; i++)
+    {
+        clr_leds();
+        set_led(1 << 2 * (numSlots - 1 - i));
+        delay(1000);
+        clr_leds();
+        set_led(2 << 2 * (numSlots - 1 - i));
+        delay(1000);
+        clr_leds();
+        set_led(3 << 2 * (numSlots - 1 - i));
+        delay(1000);
+    }*/
 }
 
 //! @brief Select filament menu
@@ -92,11 +113,11 @@ void manual_extruder_selector()
         switch (buttonClicked()) 
         {
         case ADC_Btn_Right:
-            if (active_extruder < EXTRUDERS) set_positions(active_extruder + 1, true);
-            if (active_extruder == EXTRUDERS) txPayload((char*)"X1---");
+            if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
+            if (active_extruder == numSlots) txPayload((char*)"X1---");
             break;
         case ADC_Btn_Left:
-            if (active_extruder == EXTRUDERS) txPayload((char*)"ZZZ--");
+            if (active_extruder == numSlots) txPayload((char*)"ZZZ--");
             if (active_extruder > 0) set_positions(active_extruder - 1, true);
             break;
         default:
@@ -128,7 +149,7 @@ void manual_extruder_selector()
     }
 }
 
-
+int i=0;
 //! @brief main loop
 //!
 //! It is possible to manually select filament and feed it when not printing.
@@ -147,11 +168,11 @@ void loop()
         manual_extruder_selector();
         if (ADC_Btn_Middle == buttonClicked()) 
         {
-            if (active_extruder < EXTRUDERS)
+            if (active_extruder < numSlots)
             {
                 feed_filament();
             }
-            else if (active_extruder == EXTRUDERS) 
+            else if (active_extruder == numSlots) 
             {
                 txPayload((char*)"SETUP");
                 setupMenu();
@@ -214,7 +235,7 @@ void process_commands(void)
     if (tData1 == 'T') 
     {
         //Tx Tool Change CMD Received
-        if (tData2 < EXTRUDERS) 
+        if (tData2 < numSlots) 
         {
             m600RunoutChanging = false;
             MMU2SLoading = true;
@@ -225,7 +246,7 @@ void process_commands(void)
     else if (tData1 == 'L') 
     {
         // Lx Load Filament CMD Received
-        if (tData2 < EXTRUDERS) 
+        if (tData2 < numSlots) 
         {
             if (isFilamentLoaded()) 
             {
@@ -280,7 +301,7 @@ void process_commands(void)
     else if (tData1 == 'F') 
     {
         // Fxy Filament Type Set CMD Received
-        if ((tData2 < EXTRUDERS) && (tData3 < 3)) 
+        if ((tData2 < numSlots) && (tData3 < 3)) 
         {
             filament_type[tData2] = tData3;
             sendStringToPrinter(OK);
@@ -303,7 +324,7 @@ void process_commands(void)
     else if  (tData1 == 'E') 
     {
         // Ex Eject Filament X CMD Received
-        if (tData2 < EXTRUDERS) // Ex: eject filament
+        if (tData2 < numSlots) // Ex: eject filament
         {
             m600RunoutChanging = true;
             eject_filament(tData2);

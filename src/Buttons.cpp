@@ -93,7 +93,7 @@ void setupMenu()
                 eraseLocked = false;
                 break;
             case 4: // exit menu
-                set_positions(EXTRUDERS - 1, true);
+                set_positions(numSlots - 1, true);
                 txPayload((char*)"ZZR--");
                 _exit = true;
                 break;

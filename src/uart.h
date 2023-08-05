@@ -8,8 +8,6 @@
 #define OK              (char*)"ok"
 #define BLK             0x2D  // Blank data filler
 
-//#define SEND_TO_PRINTER(S) sendString((char*)S "\n");
-
 #include <inttypes.h>
 #include <stdio.h>
 #include <avr/io.h>

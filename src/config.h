@@ -39,7 +39,11 @@
 
 #define AX_PUL_STEP_MM_Ratio          19
 
-#define PIN_IDL_SERVO 22    // PC4                       // Pin PC4
+#define NUM_SLOTS_MAX       10
+#define NUM_SLOTS_DEFAULT   5
+
+#define PIN_LED_DIN     22      //PD7           // Pin PD7
+#define PIN_IDL_SERVO   24      //PC4           // Pin PC4
 
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5
 #define PIN_PUL_DIR_LOW (PORTC &= ~0x20)        // Pin PC5
@@ -91,9 +95,6 @@
 #define TYPE_2_L2ExStageOne                    350  //  S/S
 #define TYPE_2_L2ExStageTwo                    440  //  S/S
 #define TYPE_2_UnloadSpeed                     750  //  S/S
-
-// number of extruders
-#define EXTRUDERS 5
 
 // Calibration
 #define PULLEY_EJECT_STEPS          2000

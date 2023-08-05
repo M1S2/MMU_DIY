@@ -22,6 +22,7 @@ void manual_extruder_selector();
 // signals from interrupt to main loop
 extern bool MMU2SLoading;
 extern bool inErrorState;
+extern int numSlots;
 void fixTheProblem(bool showPrevious = false);
 void fixIdlCrash(void);
 
