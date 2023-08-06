@@ -31,11 +31,11 @@ static uint16_t set_pulley_direction(int steps);
 
 /**
  * @brief move_idler
- * @param steps, delta angle by which the servo is rotated
+ * @param deltaAngle, delta angle by which the servo is rotated
  */
-void move_idler(int steps)
+void move_idler(int deltaAngle)
 {
-    currentServoAngle += steps;
+    currentServoAngle += deltaAngle;
     servoIdler.write(currentServoAngle);
 }
 

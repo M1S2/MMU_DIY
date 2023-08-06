@@ -374,12 +374,12 @@ void engage_filament_pulley(bool engage)
 {
     if (isIdlerParked && engage)  // get idler in contact with filament
     {
-        move_idler(IDLER_NEXT_FILAMENT_STEPS);
+        move_idler(IDLER_NEXT_FILAMENT_ANGLE);
         isIdlerParked = false;
     } 
     else if (!isIdlerParked && !engage)  // park idler so filament can move freely
     {
-        move_idler(IDLER_NEXT_FILAMENT_STEPS * -1);
+        move_idler(IDLER_NEXT_FILAMENT_ANGLE * -1);
         isIdlerParked = true;
     }
 }
@@ -436,7 +436,8 @@ void setIDL2pos(uint8_t _next_extruder)
     {
         _next_extruder -= 1;
     }
-    int _idler_steps = (_next_extruder - activeIdlPos) * IDLER_NEXT_FILAMENT_STEPS;
+    int _idler_steps = (activeIdlPos - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
+
     move_idler(_idler_steps);
     activeIdlPos = _next_extruder; 
 }

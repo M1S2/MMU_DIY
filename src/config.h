@@ -98,8 +98,8 @@
 
 // Calibration
 #define PULLEY_EJECT_STEPS          2000
-#define IDLER_NEXT_FILAMENT_STEPS   30      // angle that the idler must rotate between two consecutive filaments
-#define IDLER_HOME_ANGLE_ABSOLUTE   0       // absolute angle in degree at which the idler is homed
+#define IDLER_NEXT_FILAMENT_ANGLE   -45     // angle that the idler must rotate between two consecutive filaments
+#define IDLER_HOME_ANGLE_ABSOLUTE   180     // absolute angle in degree at which the idler is homed
 
 // CONFIG
 //#define _CONFIG_H
