@@ -39,7 +39,11 @@ void setupMenu()
 {
     clr_leds();
     delay(200);
-    set_led(0x2aa);
+    clr_leds();
+    for (int i = 0; i < numSlots; i++)
+    {
+        set_led(i, COLOR_WHITE, false);
+    }
     delay(1200);
     clr_leds();
 
@@ -51,8 +55,8 @@ void setupMenu()
 
     do 
     {
-        clr_leds();
-        set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * _menu));
+        set_led(0, COLOR_WHITE);
+        set_led(_menu, COLOR_BLUE, false);
         if (_menu != _menu_last_cycle) 
         {
             if (_menu == 0) txPayload((char*)"X1---");
@@ -113,7 +117,11 @@ void setupMenu()
 
     clr_leds();
     delay(400);
-    set_led(0x2aa);
+    clr_leds();
+    for (int i = 0; i < numSlots; i++)
+    {
+        set_led(i, COLOR_WHITE, false);
+    }
     delay(400);
     clr_leds();
     //set_led(1 << 2 * (4 - active_extruder));
@@ -211,7 +219,8 @@ void settings_bowden_length()
                 break;
             case S::Extruded:
                 state = S::NotExtruded;
-                set_led((1 << 2 * 4) | (2 << 2 * 4) | (2 << 2 * 1));
+                set_led(0, COLOR_WHITE);
+                set_led(numSlots - 1, COLOR_BLUE, false);
                 tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
                 tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
                 tempW[0] = 'W';

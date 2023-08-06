@@ -34,8 +34,7 @@ bool feed_filament(void)
     if (!isFilamentLoaded()) 
     {
         int _c = 0;
-        clr_leds();
-        set_led(2 << 2 * (4 - active_extruder));
+        set_led(active_extruder, COLOR_BLUE);
         engage_filament_pulley(true);
         while (!_loaded) 
         {
@@ -46,8 +45,7 @@ bool feed_filament(void)
                 moveSmooth(AX_PUL, -500, filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC, true);
                 delay(10);
                 moveSmooth(AX_PUL, filament_lookup_table[3][filament_type[active_extruder]], filament_lookup_table[5][filament_type[active_extruder]], GLOBAL_ACC);
-                clr_leds();
-                set_led(1 << 2 * (4 - active_extruder));
+                set_led(active_extruder, COLOR_GREEN);
                 _loaded = true;
                 break;
             } 
@@ -87,8 +85,7 @@ void toolChange(int new_extruder)
 {
     isPrinting = true;
 
-    clr_leds();
-    set_led(2 << 2 * (4 - active_extruder));
+    set_led(active_extruder, COLOR_BLUE);
 
     previous_extruder = active_extruder;
     active_extruder = new_extruder;
@@ -101,8 +98,7 @@ void toolChange(int new_extruder)
             {
                 home(true);
             }
-            clr_leds();
-            set_led(2 << 2 * (4 - active_extruder));
+            set_led(active_extruder, COLOR_BLUE);
             load_filament_withSensor();
         }
     } 
@@ -126,26 +122,11 @@ void toolChange(int new_extruder)
         uint8_t toolChangesLower = (0xFF & toolChanges);
         unsigned char txTCU[5] = {'T',toolChangesUpper, toolChangesLower, BLK, BLK};
         txPayload((char*)txTCU);
-        clr_leds();
-        set_led(2 << 2 * (4 - active_extruder));
+        set_led(active_extruder, COLOR_BLUE);
         load_filament_withSensor();
         homedOnUnload = false;
     }
-    clr_leds();
-    set_led(1 << 2 * (4 - active_extruder));
-}
-
-void led_blink(int _no)
-{
-    clr_leds();
-    set_led(1 << 2 * _no);
-    delay(40);
-    clr_leds();
-    delay(20);
-    set_led(1 << 2 * _no);
-    delay(40);
-    clr_leds();
-    delay(10);
+    set_led(active_extruder, COLOR_GREEN);
 }
 
 /**
@@ -198,7 +179,7 @@ void recover_after_eject()
 void load_filament_withSensor(uint16_t setupBowLen)
 {
     uint8_t retries = 1;
-    bool _retry = false;
+    bool _retry = true;
     do 
     {
         if (!isHomed && (setupBowLen == 0))
@@ -215,7 +196,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
             if (setupBowLen != 0) 
             {
                 moveSmooth(AX_PUL, setupBowLen, filament_lookup_table[0][filament_type[active_extruder]], filament_lookup_table[1][filament_type[active_extruder]]); // Load filament down to MK3-FSensor
-                _retry = true;
+                _retry = false;
             } 
             else 
             {
@@ -225,9 +206,8 @@ void load_filament_withSensor(uint16_t setupBowLen)
                 IR_SENSOR   = false;
                 if (moveSmooth(AX_PUL, filament_lookup_table[4][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
-                    clr_leds(); //set_led(0x000);                                                 // Clear all 10 LEDs on MMU unit
-                    set_led(1 << 2 * (4 - active_extruder));
-                    _retry = true;
+                    set_led(active_extruder, COLOR_GREEN);
+                    _retry = false;
                 }
                 else
                 {
@@ -249,7 +229,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
                 fixTheProblem();
             }
         }
-    } while (!_retry);
+    } while (_retry);
     startWakeTime = millis();  // Start/Reset wakeTimer
 }
 
@@ -372,6 +352,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
  */
 void load_filament_into_extruder()
 {
+    set_led(active_extruder, COLOR_BLUE);
     engage_filament_pulley(true); // get in contact with filament
 
     move_pulley(150, filament_lookup_table[6][filament_type[active_extruder]]);
@@ -379,8 +360,7 @@ void load_filament_into_extruder()
     move_pulley(820, filament_lookup_table[7][filament_type[active_extruder]]);
     disableStepper(AX_PUL);
     engage_filament_pulley(false); // release contact with filament
-
-    disableStepper(AX_PUL);
+    set_led(active_extruder, COLOR_GREEN);
 }
 
 /**
@@ -407,15 +387,16 @@ void engage_filament_pulley(bool engage)
 void home(bool doToolSync)
 {
     bool previouslyEngaged = !isIdlerParked;
+
+    clr_leds();
+    for(int i = 0; i < numSlots; i++)
+    {
+        set_led(i, COLOR_BLUE);
+    }
+
     homeIdler();
 
-    clr_leds();
-    set_led(0x155);       // All five red
-
-    clr_leds();            // All five off
-
-    clr_leds();
-    set_led(1 << 2 * (4 - active_extruder));
+    set_led(active_extruder, COLOR_GREEN);
 
     isHomed = true;
     startWakeTime = millis();

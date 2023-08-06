@@ -19,7 +19,6 @@ extern uint16_t trackToolChanges;
 // functions:
 void toolChange(int new_extruder);
 bool feed_filament(void);
-void led_blink(int _no);
 void engage_filament_pulley(bool engage);
 void load_filament_withSensor(uint16_t setupBowLen = 0);
 void unload_filament_withSensor(uint8_t extruder = active_extruder);

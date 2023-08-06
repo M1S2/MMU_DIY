@@ -40,7 +40,7 @@
 #define AX_PUL_STEP_MM_Ratio          19
 
 #define NUM_SLOTS_MAX       10
-#define NUM_SLOTS_DEFAULT   5
+#define NUM_SLOTS_DEFAULT   3
 
 #define PIN_LED_DIN     22      //PD7           // Pin PD7
 #define PIN_IDL_SERVO   24      //PC4           // Pin PC4

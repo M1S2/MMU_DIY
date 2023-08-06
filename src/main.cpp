@@ -19,63 +19,34 @@ void process_commands(void);
 //!
 //! LED indication of states
 //!
-//! RG | RG | RG | RG | RG | meaning
-//! -- | -- | -- | -- | -- | ------------------------
-//! 00 | 00 | 00 | 00 | 0b | Shift register initialized
-//! 00 | 00 | 00 | 0b | 00 | uart initialized
-//! 00 | 00 | 0b | 00 | 00 | spi initialized
-//! 00 | 0b | 00 | 00 | 00 | tmc2130 initialized
-//! 0b | 00 | 00 | 00 | 00 | A/D converter initialized
-//! b0 | b0 | b0 | b0 | b0 | Error, filament detected, still present
-//! 0b | 0b | 0b | 0b | 0b | Error, filament detected, no longer present, continue by right button click
+//! Slot0   | Slot1 | Slot2 | Slot3 | Slot4 | meaning
+//! ------- | ----- | ----- | ----- | ----- | -----------------------
+//! blink   | 0     | 0     | 0     | 0     | EEPROM initialized
+//! 0       | blink | 0     | 0     | 0     | UART initialized
+//! 0       | 0     | blink | 0     | 0     | Idler homed
 //!
-//! @n R - Red LED
-//! @n G - Green LED
-//! @n 1 - active
-//! @n 0 - inactive
-//! @n b - blinking
 void setup()
 {
     #warning Add logic to detect the number of connected LEDs here
-    numSlots = 3; //NUM_SLOTS_DEFAULT;
+    numSlots = NUM_SLOTS_DEFAULT;
     LEDS.setOutput(PIN_LED_DIN);
-
-    //permanentStorageInit();
-    startWakeTime = millis();
-    
-    led_blink(1);
-
-    PORTA |= 0x02; // Set Button ADC Pin High
+    PORTA |= 0x02;  // Set Button ADC Pin High
     servoIdler.attach(PIN_IDL_SERVO);
+
+    permanentStorageInit();
+    startWakeTime = millis();
+    led_blink(0);
     
     sei();
 
-    led_blink(2);
     initUart();
-    led_blink(3);
-    led_blink(4);
+    led_blink(1);
 
-    clr_leds();
     homeIdler(true);
+    led_blink(2);
+
     if (active_extruder != numSlots) txPayload((char*)"STR--");
-
     sendStringToPrinter((char*)"start");
-
-
-
-    /*clr_leds();
-    for(int i = 0; i < numSlots; i++)
-    {
-        clr_leds();
-        set_led(1 << 2 * (numSlots - 1 - i));
-        delay(1000);
-        clr_leds();
-        set_led(2 << 2 * (numSlots - 1 - i));
-        delay(1000);
-        clr_leds();
-        set_led(3 << 2 * (numSlots - 1 - i));
-        delay(1000);
-    }*/
 }
 
 //! @brief Select filament menu
@@ -105,8 +76,7 @@ void setup()
 //! @n b - blinking
 void manual_extruder_selector()
 {
-    clr_leds();
-    set_led(1 << 2 * (4 - active_extruder));
+    set_led(active_extruder, COLOR_GREEN);
 
     if (!isFilamentLoaded()) 
     {
@@ -139,10 +109,9 @@ void manual_extruder_selector()
         }
     }
 
-    if (active_extruder == 5) 
+    if (active_extruder == numSlots) 
     {
-        clr_leds();
-        set_led(3 << 2 * 0);
+        set_led(numSlots - 1, COLOR_BLUE);
         delay(100);
         clr_leds();
         delay(100);
@@ -201,21 +170,7 @@ void loop()
 
 void process_commands(void)
 {
-/*    if(confirmedPayload)
-    {
-        char temp[20];
-        sprintf(temp,"%c %c %c\n", rxData1, rxData2, rxData3);
-        sendData(temp);
-
-        rxData1 = 0;
-        rxData2 = 0;
-        rxData3 = 0;
-        confirmedPayload = false;
-    }
-    return;*/
-
     cli();
-
     // Copy volitale vars as local
     unsigned char tData1 = rxData1;
     unsigned char tData2 = rxData2;
@@ -232,21 +187,21 @@ void process_commands(void)
     sei();
     if (inErrorState) return;
 
-    if (tData1 == 'T') 
+    if (tData1 == 'T')
     {
         //Tx Tool Change CMD Received
-        if (tData2 < numSlots) 
+        if ((tData2 - '0') < numSlots) 
         {
             m600RunoutChanging = false;
             MMU2SLoading = true;
-            toolChange(tData2);
+            toolChange(tData2 - '0');
             sendStringToPrinter(OK);
         }
     } 
     else if (tData1 == 'L') 
     {
         // Lx Load Filament CMD Received
-        if (tData2 < numSlots) 
+        if ((tData2 - '0') < numSlots) 
         {
             if (isFilamentLoaded()) 
             {
@@ -256,7 +211,7 @@ void process_commands(void)
             } 
             else 
             {
-                set_positions(tData2, true);
+                set_positions(tData2 - '0', true);
                 feed_filament(); // returns OK and active_extruder to update MK3
             }
             sendStringToPrinter(OK);
@@ -264,9 +219,11 @@ void process_commands(void)
     } 
     else if ((tData1 == 'U') && (tData2 == '0')) 
     {
+        set_led(active_extruder, COLOR_BLUE);
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
         homedOnUnload = false; // Clear this flag as unload_filament_withSensor() method uses it within the 'T' cmds
+        set_led(active_extruder, COLOR_GREEN);
         sendStringToPrinter(OK);
         isPrinting = false;
         toolChanges = 0;
@@ -301,9 +258,9 @@ void process_commands(void)
     else if (tData1 == 'F') 
     {
         // Fxy Filament Type Set CMD Received
-        if ((tData2 < numSlots) && (tData3 < 3)) 
+        if (((tData2 - '0') < numSlots) && ((tData3 - '0') < 3)) 
         {
-            filament_type[tData2] = tData3;
+            filament_type[tData2 - '0'] = tData3 - '0';
             sendStringToPrinter(OK);
         }
     } 
@@ -324,10 +281,10 @@ void process_commands(void)
     else if  (tData1 == 'E') 
     {
         // Ex Eject Filament X CMD Received
-        if (tData2 < numSlots) // Ex: eject filament
+        if ((tData2 - '0') < numSlots) // Ex: eject filament
         {
             m600RunoutChanging = true;
-            eject_filament(tData2);
+            eject_filament(tData2 - '0');
             sendStringToPrinter(OK);
         }
     } 
@@ -345,7 +302,7 @@ void process_commands(void)
 void fixTheProblem(bool showPrevious) 
 {
     engage_filament_pulley(false);                    // park the idler stepper motor
-    disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
+    disableStepper(AX_IDL);                           // turn OFF the idler stepper motor
 
     inErrorState = true;
 
@@ -386,11 +343,11 @@ void fixTheProblem(bool showPrevious)
             delay(100);
             if (isFilamentLoaded()) 
             {
-                set_led(2 << 2 * (4 - active_extruder));
+                set_led(active_extruder, COLOR_RED);
             } 
             else 
             {
-                set_led(1 << 2 * (4 - active_extruder));
+                set_led(active_extruder, COLOR_GREEN);
             }
         } 
         else 
@@ -426,16 +383,16 @@ void fixTheProblem(bool showPrevious)
             clr_leds();
             if (active_extruder != previous_extruder) 
             {
-                set_led(1 << 2 * (4 - active_extruder));
+                set_led(active_extruder, COLOR_GREEN);
             }
             delay(100);
             if (isFilamentLoaded()) 
             {
-                set_led(2 << 2 * (4 - previous_extruder));
+                set_led(active_extruder, COLOR_RED);
             } 
             else 
             {
-                set_led(1 << 2 * (4 - previous_extruder));
+                set_led(active_extruder, COLOR_GREEN);
             }
         }
     }
@@ -460,9 +417,9 @@ void fixIdlCrash(void)
         delay(100);
         if (isFilamentLoaded()) 
         {
-            set_led(2 << 2 * (4 - active_extruder));
+            set_led(active_extruder, COLOR_RED);
         } 
-        else set_led(1 << 2 * (4 - active_extruder));
+        else set_led(active_extruder, COLOR_GREEN);
     }
     inErrorState = false;
     set_idler_toLast_positions(active_extruder);
