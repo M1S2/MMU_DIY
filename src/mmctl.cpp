@@ -18,7 +18,7 @@ int8_t activeIdlPos = -1;
 int8_t previous_extruder = -1;
 uint16_t toolChanges = 0;
 uint16_t trackToolChanges = 0;
-bool isIdlerParked = false;
+bool isIdlerParked = true;
 bool isPrinting = false;
 bool isEjected = false;
 bool isHomed = false;
@@ -374,27 +374,30 @@ void engage_filament_pulley(bool engage)
 {
     if (isIdlerParked && engage)  // get idler in contact with filament
     {
-        move_idler(IDLER_NEXT_FILAMENT_ANGLE);
+        sendStringToPrinter("engage");
+        setIDL2pos(active_extruder);
         isIdlerParked = false;
     } 
     else if (!isIdlerParked && !engage)  // park idler so filament can move freely
     {
-        move_idler(IDLER_NEXT_FILAMENT_ANGLE * -1);
+        sendStringToPrinter("park");
+        parkIdler();
         isIdlerParked = true;
     }
 }
 
+#warning home isn't really homing anymore !!!
 void home(bool doToolSync)
 {
     bool previouslyEngaged = !isIdlerParked;
 
-    clr_leds();
+    /*clr_leds();
     for(int i = 0; i < numSlots; i++)
     {
         set_led(i, COLOR_BLUE);
-    }
+    }*/
 
-    homeIdler();
+    //homeIdler();
 
     set_led(active_extruder, COLOR_GREEN);
 
@@ -445,7 +448,7 @@ void setIDL2pos(uint8_t _next_extruder)
 void set_idler_toLast_positions(uint8_t _next_extruder)
 {
     bool previouslyEngaged = !isIdlerParked;
-    homeIdler();
+    //homeIdler();
     setIDL2pos(_next_extruder);
     engage_filament_pulley(previouslyEngaged);
 }

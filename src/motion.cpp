@@ -98,7 +98,15 @@ void disableStepper(int axis)
     }
 }
 
-void homeIdler(bool toLastFilament)
+void parkIdler()
+{
+    currentServoAngle = IDLER_PARK_ANGLE_ABSOLUTE;
+    move_idler(0);
+    isIdlerParked = true;
+    activeIdlPos = numSlots;
+}
+
+/*void homeIdler()//bool toLastFilament)
 {
     currentServoAngle = IDLER_HOME_ANGLE_ABSOLUTE;
     move_idler(0);
@@ -113,7 +121,7 @@ void homeIdler(bool toLastFilament)
         setIDL2pos(active_extruder);
         engage_filament_pulley(false);
     }
-}
+}*/
 
 /**
  * @brief moveTest

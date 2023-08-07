@@ -34,6 +34,9 @@ void setup()
     servoIdler.attach(PIN_IDL_SERVO);
 
     permanentStorageInit();
+    #warning Load the active_extruder from the EEPROM
+    active_extruder = 0;
+    activeIdlPos = active_extruder;
     startWakeTime = millis();
     led_blink(0);
     
@@ -42,7 +45,8 @@ void setup()
     initUart();
     led_blink(1);
 
-    homeIdler(true);
+    home(true);
+    parkIdler();
     led_blink(2);
 
     if (active_extruder != numSlots) txPayload((char*)"STR--");
@@ -78,7 +82,7 @@ void manual_extruder_selector()
 {
     set_led(active_extruder, COLOR_GREEN);
 
-    if (!isFilamentLoaded()) 
+    /*if (!isFilamentLoaded()) 
     {
         switch (buttonClicked()) 
         {
@@ -107,7 +111,7 @@ void manual_extruder_selector()
           default:
             break;
         }
-    }
+    }*/
 
     if (active_extruder == numSlots) 
     {
@@ -186,6 +190,41 @@ void process_commands(void)
     } 
     sei();
     if (inErrorState) return;
+
+#warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if(tData1 == 'I')
+    {
+        engage_filament_pulley(false);    
+    }
+    else if(tData1 == 'B')
+    {
+        engage_filament_pulley(true);
+    }
+    else if(tData1 == 'Z')
+    {
+        active_extruder = tData2 - '0';
+    }
+    else if(tData1 == 'Y')
+    {
+        if((tData2 - '0') < numSlots)
+        {
+            active_extruder = tData2 - '0';
+            set_positions(active_extruder);
+        }
+    }
+    else if(tData1 == 'H')
+    {
+        if((tData2 - '0') == 0)
+        {
+            home(true);
+        }
+        else
+        {
+            home(false);
+        }
+    }
+    // #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
     if (tData1 == 'T')
     {
