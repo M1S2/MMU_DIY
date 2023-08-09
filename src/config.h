@@ -1,32 +1,12 @@
 // config.h - main configuration file
 
-#define FW_VERSION  402 // example: 103 means version 1.0.3
-#define FW_BUILDNR  380 // number of commits in 'master'
+#define FW_VERSION      402 // example: 103 means version 1.0.3
+#define FW_BUILDNR      380 // number of commits in 'master'
 
-#define WAKE_TIMER            300000        // 5m
-
-//#define green_board
-
-// shift register outputs
-// LEDS - hardcoded
-#define SHR16_LEDG0           0x0100
-#define SHR16_LEDR0           0x0200
-#define SHR16_LEDG1           0x0400
-#define SHR16_LEDR1           0x0800
-#define SHR16_LEDG2           0x1000
-#define SHR16_LEDR2           0x2000
-#define SHR16_LEDG3           0x4000
-#define SHR16_LEDR3           0x8000
-#define SHR16_LEDG4           0x0040
-#define SHR16_LEDR4           0x0080
-#define SHR16_LED_MSK         0xffc0
-
-// UART0 (USB)
-#define UART0_BDR 115200
+#define WAKE_TIMER      300000        // 5m
 
 // speeds and accelerations
-#define GLOBAL_ACC    80000 // micro steps / s²
-
+#define GLOBAL_ACC      80000 // micro steps / s²
 
 //ADC configuration
 #define ADC_Btn_None      0
@@ -57,17 +37,8 @@
 
 #define PIN_BUTTONS     A1
 
-// signals (from interrupts to main loop)
-#define SIG_ID_BTN 1 // any button changed
-
-// states (<0 =error)
-#define STA_INIT 0  // setup - initialization
-#define STA_BUSY 1  // working
-#define STA_READY 2 // ready - accepting commands
-
 // Type Definitions
 // filament types (0: default; 1:flex; 2: PVA)
-// NOTE: Stealth Mode cuts MAX PUL SPEED.
 // Default
 #define TYPE_0_MAX_SPPED_PUL                  4000  //  S/S
 #define TYPE_0_ACC_FEED_PUL                   5000  //  S/S/S

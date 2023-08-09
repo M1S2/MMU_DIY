@@ -80,7 +80,7 @@ void sendStringToPrinter(char* str)
 
 void txPayload(char* payload)
 {
-    #warning This should be disabled when development is finished (when used with Marlin FW). Because Marlin can't handle this.
+    #warning This should be disabled when development is finished (when used with Marlin FW). Because Marlin can not handle this.
     sendStringToPrinter(payload);
 }
 

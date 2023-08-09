@@ -6,15 +6,10 @@
 
 // public variables:
 extern bool isPrinting;
-extern bool isHomed;
 extern int8_t active_extruder;
-extern int8_t activeIdlPos;
 extern int8_t previous_extruder;
 extern bool isIdlerParked;
-extern bool homedOnUnload;
 extern bool isEjected;
-extern uint16_t toolChanges;
-extern uint16_t trackToolChanges;
 
 // functions:
 void toolChange(int new_extruder);
@@ -24,7 +19,6 @@ void load_filament_withSensor(uint16_t setupBowLen = 0);
 void unload_filament_withSensor(uint8_t extruder = active_extruder);
 void unload_filament_forSetup(uint16_t distance, uint8_t extruder = active_extruder);
 void load_filament_into_extruder();
-void home(bool doToolSync = false);
 void set_positions(uint8_t _next_extruder, bool update_extruders = false);
 void set_idler_toLast_positions(uint8_t _next_extruder);
 void setIDL2pos(uint8_t _next_extruder);

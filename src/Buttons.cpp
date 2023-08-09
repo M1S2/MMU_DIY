@@ -151,8 +151,7 @@ void setupMenu()
 void settings_bowden_length()
 {
     // load filament to end of detached bowden tube to check correct length
-    if (!isHomed) home();
-    else set_positions(0, true);
+    set_positions(0, true);
     enum class S : uint8_t 
     {
         NotExtruded,

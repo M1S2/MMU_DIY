@@ -28,7 +28,6 @@ void disableAllSteppers(void);
 void enableStepper(int axis);
 void disableStepper(int axis);
 void parkIdler();
-//void homeIdler();//bool toLastFilament = false);
 
 MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc = GLOBAL_ACC, bool withFindaDetection = false, bool withIR_SENSORDetection = false);
 #endif

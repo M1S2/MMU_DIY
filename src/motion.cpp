@@ -71,7 +71,6 @@ void enableAllSteppers(void)
 void disableAllSteppers(void)
 {
     PIN_PUL_EN_HIGH;
-    isHomed = false;
 }
 
 void enableStepper(int axis)
@@ -103,25 +102,7 @@ void parkIdler()
     currentServoAngle = IDLER_PARK_ANGLE_ABSOLUTE;
     move_idler(0);
     isIdlerParked = true;
-    activeIdlPos = numSlots;
 }
-
-/*void homeIdler()//bool toLastFilament)
-{
-    currentServoAngle = IDLER_HOME_ANGLE_ABSOLUTE;
-    move_idler(0);
-
-    isIdlerParked = false;
-    activeIdlPos = numSlots;
-    if (toLastFilament) 
-    {
-        uint8_t filament = 0;
-        FilamentLoaded::get(filament);
-        active_extruder = filament;
-        setIDL2pos(active_extruder);
-        engage_filament_pulley(false);
-    }
-}*/
 
 /**
  * @brief moveTest

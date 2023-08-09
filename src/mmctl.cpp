@@ -14,23 +14,14 @@
 
 // public variables:
 int8_t active_extruder = -1;
-int8_t activeIdlPos = -1;
 int8_t previous_extruder = -1;
-uint16_t toolChanges = 0;
-uint16_t trackToolChanges = 0;
 bool isIdlerParked = true;
 bool isPrinting = false;
 bool isEjected = false;
-bool isHomed = false;
-bool homedOnUnload = false;
 
 bool feed_filament(void)
 {
     bool _loaded = false;
-    if (!isHomed && !isFilamentLoaded())
-    {
-        home(true);
-    }
     if (!isFilamentLoaded()) 
     {
         int _c = 0;
@@ -94,10 +85,9 @@ void toolChange(int new_extruder)
     {
         if (!isFilamentLoaded()) 
         {
-            if (!isHomed)
-            {
-                home(true);
-            }
+            startWakeTime = millis();
+            set_positions(active_extruder);
+            
             set_led(active_extruder, COLOR_BLUE);
             load_filament_withSensor();
         }
@@ -108,23 +98,9 @@ void toolChange(int new_extruder)
         {
             unload_filament_withSensor(previous_extruder);
         }
-        if (!isHomed)
-        {
-            home(true);
-        } 
-        else if (!homedOnUnload) 
-        {
-            set_positions(active_extruder, true);
-        }
-        toolChanges++;
-        trackToolChanges++;
-        uint8_t toolChangesUpper = (0xFF & (toolChanges >> 8));
-        uint8_t toolChangesLower = (0xFF & toolChanges);
-        unsigned char txTCU[5] = {'T',toolChangesUpper, toolChangesLower, BLK, BLK};
-        txPayload((char*)txTCU);
+        set_positions(active_extruder, true);
         set_led(active_extruder, COLOR_BLUE);
         load_filament_withSensor();
-        homedOnUnload = false;
     }
     set_led(active_extruder, COLOR_GREEN);
 }
@@ -172,7 +148,9 @@ void recover_after_eject()
     {
         fixTheProblem();
     }
-    home(true);
+    startWakeTime = millis();
+    set_positions(active_extruder);     // Return to previous active extruder
+    engage_filament_pulley(!isIdlerParked);
     isEjected = false;
 }
 
@@ -182,10 +160,6 @@ void load_filament_withSensor(uint16_t setupBowLen)
     bool _retry = true;
     do 
     {
-        if (!isHomed && (setupBowLen == 0))
-        {
-            home(true);
-        }
         engage_filament_pulley(true); // get in contact with filament
 
         // load filament until FINDA senses end of the filament, means correctly loaded into the selector
@@ -241,10 +215,6 @@ void unload_filament_withSensor(uint8_t extruder)
 {
     int unloadFINDACheckSteps = -3000;
     engage_filament_pulley(true); // get in contact with filament
-    uint8_t mmPerSecSpeedUpper = (0xFF & ((filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio) >> 8));
-    uint8_t mmPerSecSpeedLower = (0xFF & (filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio));
-    unsigned char txUFR[5] = {'U', mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
-    txPayload((char*)txUFR);
     delay(40);
     moveSmooth(AX_PUL, -(30*AX_PUL_STEP_MM_Ratio), filament_lookup_table[8][filament_type[extruder]], GLOBAL_ACC);
 
@@ -274,7 +244,6 @@ void unload_filament_withSensor(uint8_t extruder)
             {
                 fixTheProblem();
             }
-            homedOnUnload = true;
         }
     }
     else
@@ -303,10 +272,6 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
     if (isFilamentLoaded()) 
     { 
         engage_filament_pulley(true); // get in contact with filament
-        uint8_t mmPerSecSpeedUpper = (0xFF & ((filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio) >> 8));
-        uint8_t mmPerSecSpeedLower = (0xFF & (filament_lookup_table[8][filament_type[extruder]] / AX_PUL_STEP_MM_Ratio));
-        unsigned char txUFR[5] = {'U',mmPerSecSpeedUpper, mmPerSecSpeedLower, BLK, BLK};
-        txPayload((char*)txUFR);
         delay(40);
         if (moveSmooth(AX_PUL, (distance * -1), filament_lookup_table[0][filament_type[extruder]], filament_lookup_table[1][filament_type[extruder]], true) == MR_Success)
         {
@@ -332,7 +297,6 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
             {
                 fixTheProblem();
             }
-            homedOnUnload = true;
         }
     }
     
@@ -374,42 +338,12 @@ void engage_filament_pulley(bool engage)
 {
     if (isIdlerParked && engage)  // get idler in contact with filament
     {
-        sendStringToPrinter("engage");
         setIDL2pos(active_extruder);
         isIdlerParked = false;
     } 
     else if (!isIdlerParked && !engage)  // park idler so filament can move freely
     {
-        sendStringToPrinter("park");
         parkIdler();
-        isIdlerParked = true;
-    }
-}
-
-#warning home isn't really homing anymore !!!
-void home(bool doToolSync)
-{
-    bool previouslyEngaged = !isIdlerParked;
-
-    /*clr_leds();
-    for(int i = 0; i < numSlots; i++)
-    {
-        set_led(i, COLOR_BLUE);
-    }*/
-
-    //homeIdler();
-
-    set_led(active_extruder, COLOR_GREEN);
-
-    isHomed = true;
-    startWakeTime = millis();
-
-    if (doToolSync) 
-    {
-        set_positions(active_extruder);
-        FilamentLoaded::set(active_extruder);
-        engage_filament_pulley(previouslyEngaged);
-        trackToolChanges = 0;
     }
 }
 
@@ -419,36 +353,28 @@ void set_positions(uint8_t _next_extruder, bool update_extruders)
     {
         previous_extruder = active_extruder;
         active_extruder = _next_extruder;
-        FilamentLoaded::set(active_extruder);
-        unsigned char temp[5] = {'A', 'E', (uint8_t)active_extruder, BLK, BLK};
-        txPayload((char*)temp);    
+        FilamentLoaded::set(active_extruder);  
     }
-    if (!isHomed)
-    {
-        home(true);
-    }
-    else 
-    {
-        setIDL2pos(_next_extruder);
-    }
+    setIDL2pos(_next_extruder);
 }
 
 void setIDL2pos(uint8_t _next_extruder)
 {
     if (_next_extruder == numSlots)
     {
-        _next_extruder -= 1;
+        parkIdler();
     }
-    int _idler_steps = (activeIdlPos - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
-
-    move_idler(_idler_steps);
-    activeIdlPos = _next_extruder; 
+    else
+    {
+        int _idler_steps = (active_extruder - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
+        move_idler(_idler_steps);
+        active_extruder = _next_extruder;
+    }
 }
 
 void set_idler_toLast_positions(uint8_t _next_extruder)
 {
     bool previouslyEngaged = !isIdlerParked;
-    //homeIdler();
     setIDL2pos(_next_extruder);
     engage_filament_pulley(previouslyEngaged);
 }

@@ -23,7 +23,7 @@ void process_commands(void);
 //! ------- | ----- | ----- | ----- | ----- | -----------------------
 //! blink   | 0     | 0     | 0     | 0     | EEPROM initialized
 //! 0       | blink | 0     | 0     | 0     | UART initialized
-//! 0       | 0     | blink | 0     | 0     | Idler homed
+//! 0       | 0     | blink | 0     | 0     | Idler initialized
 //!
 void setup()
 {
@@ -34,19 +34,20 @@ void setup()
     servoIdler.attach(PIN_IDL_SERVO);
 
     permanentStorageInit();
-    #warning Load the active_extruder from the EEPROM
-    active_extruder = 0;
-    activeIdlPos = active_extruder;
+    //Load the active_extruder from the EEPROM
+    uint8_t filament = 0;
+    FilamentLoaded::get(filament);
+    active_extruder = filament;
     startWakeTime = millis();
     led_blink(0);
     
     sei();
-
     initUart();
     led_blink(1);
 
-    home(true);
     parkIdler();
+    delay(1000);
+    set_positions(active_extruder);     // Move to previous active extruder
     led_blink(2);
 
     if (active_extruder != numSlots) txPayload((char*)"STR--");
@@ -82,7 +83,7 @@ void manual_extruder_selector()
 {
     set_led(active_extruder, COLOR_GREEN);
 
-    /*if (!isFilamentLoaded()) 
+    if (!isFilamentLoaded()) 
     {
         switch (buttonClicked()) 
         {
@@ -111,7 +112,7 @@ void manual_extruder_selector()
           default:
             break;
         }
-    }*/
+    }
 
     if (active_extruder == numSlots) 
     {
@@ -212,17 +213,6 @@ void process_commands(void)
             set_positions(active_extruder);
         }
     }
-    else if(tData1 == 'H')
-    {
-        if((tData2 - '0') == 0)
-        {
-            home(true);
-        }
-        else
-        {
-            home(false);
-        }
-    }
     // #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -261,12 +251,9 @@ void process_commands(void)
         set_led(active_extruder, COLOR_BLUE);
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
-        homedOnUnload = false; // Clear this flag as unload_filament_withSensor() method uses it within the 'T' cmds
         set_led(active_extruder, COLOR_GREEN);
         sendStringToPrinter(OK);
         isPrinting = false;
-        toolChanges = 0;
-        trackToolChanges = 0;
     } 
     else if (tData1 == 'S') 
     {
@@ -340,8 +327,8 @@ void process_commands(void)
 //****************************************************************************************************
 void fixTheProblem(bool showPrevious) 
 {
+    bool previouslyEngaged = !isIdlerParked;
     engage_filament_pulley(false);                    // park the idler stepper motor
-    disableStepper(AX_IDL);                           // turn OFF the idler stepper motor
 
     inErrorState = true;
 
@@ -439,8 +426,11 @@ void fixTheProblem(bool showPrevious)
     
     inErrorState = false;
     txPayload((char*)"ZZZ--"); // Clear MK3 Message
-    home(true); // Home and return to previous active extruder
-    trackToolChanges = 0;
+
+    startWakeTime = millis();
+    set_positions(active_extruder);     // Return to previous active extruder
+    FilamentLoaded::set(active_extruder);
+    engage_filament_pulley(previouslyEngaged);
 }
 
 void fixIdlCrash(void) 
