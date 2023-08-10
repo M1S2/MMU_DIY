@@ -352,7 +352,6 @@ void set_positions(uint8_t _next_extruder, bool update_extruders)
     if (update_extruders) 
     {
         previous_extruder = active_extruder;
-        active_extruder = _next_extruder;
         FilamentLoaded::set(active_extruder);  
     }
     setIDL2pos(_next_extruder);
@@ -366,9 +365,12 @@ void setIDL2pos(uint8_t _next_extruder)
     }
     else
     {
-        int _idler_steps = (active_extruder - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
+        int8_t active_pos = isIdlerParked ? numSlots : active_extruder;
+        int _idler_steps = (active_pos - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
+
         move_idler(_idler_steps);
         active_extruder = _next_extruder;
+        isIdlerParked = false;
     }
 }
 

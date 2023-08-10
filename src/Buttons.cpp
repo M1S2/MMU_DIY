@@ -55,8 +55,7 @@ void setupMenu()
 
     do 
     {
-        set_led(0, COLOR_WHITE);
-        set_led(_menu, COLOR_BLUE, false);
+        set_led(_menu, COLOR_WHITE);
         if (_menu != _menu_last_cycle) 
         {
             if (_menu == 0) txPayload((char*)"X1---");
@@ -69,14 +68,14 @@ void setupMenu()
 
         switch (buttonClicked()) 
         {
-        case ADC_Btn_Right:
+        case BTN_RIGHT:
             if (_menu > 0) 
             {
                 _menu--;
                 delay(800);
             }
             break;
-        case ADC_Btn_Middle:
+        case BTN_MIDDLE:
             switch (_menu) 
             {
             case 1:
@@ -103,7 +102,7 @@ void setupMenu()
                 break;
             }
             break;
-        case ADC_Btn_Left:
+        case BTN_LEFT:
             if (_menu < 4) 
             {
                 _menu++;
@@ -124,7 +123,7 @@ void setupMenu()
     }
     delay(400);
     clr_leds();
-    //set_led(1 << 2 * (4 - active_extruder));
+    set_led(active_extruder, COLOR_GREEN);
 }
 
 //! @brief Set bowden length
@@ -173,7 +172,7 @@ void settings_bowden_length()
         delay(10);
         switch (buttonClicked()) 
         {
-        case ADC_Btn_Left:
+        case BTN_LEFT:
             switch (state) 
             {
             case S::NotExtruded:
@@ -203,7 +202,7 @@ void settings_bowden_length()
                 break;
             }
             break;
-        case ADC_Btn_Middle:
+        case BTN_MIDDLE:
             switch (state) 
             {
             case S::NotExtruded:
@@ -233,7 +232,7 @@ void settings_bowden_length()
                 break;
             }
             break;
-        case ADC_Btn_Right:
+        case BTN_RIGHT:
             switch (state) 
             {
             case S::NotExtruded:
@@ -268,15 +267,28 @@ void settings_bowden_length()
 uint8_t buttonClicked()
 {
     uint8_t trys = 2;
-    uint8_t button = ADC_Btn_None;
-  loop:
-    uint16_t z = 0;
-    for (int i=0; i < 4; i++) z += analogRead(PIN_BUTTONS);
-    z = z / 4;
-    if      (z < 260 && z > 200) button = ADC_Btn_Left;
-    else if (z < 160 && z > 100) button = ADC_Btn_Middle;
-    else if (z <  60) button = ADC_Btn_Right;
-    trys--;
-    if ((trys > 0) && !button) { delay(10); goto loop; } // debouce then re-read
+    uint8_t button = BTN_NONE;
+    do
+    {    
+        uint16_t btn_adc_val = 0;
+        for (int i=0; i < 4; i++) btn_adc_val += analogRead(PIN_BUTTONS);
+        btn_adc_val = btn_adc_val / 4;
+
+        if (btn_adc_val > (BTN_LEFT_ADC_VALUE - BTN_VALID_ADC_DIFF) && btn_adc_val < (BTN_LEFT_ADC_VALUE + BTN_VALID_ADC_DIFF))
+        {
+            button = BTN_LEFT;
+        }
+        else if (btn_adc_val > (BTN_MIDDLE_ADC_VALUE - BTN_VALID_ADC_DIFF) && btn_adc_val < (BTN_MIDDLE_ADC_VALUE + BTN_VALID_ADC_DIFF))
+        {
+            button = BTN_MIDDLE;
+        }
+        else if (btn_adc_val < (BTN_RIGHT_ADC_VALUE + BTN_VALID_ADC_DIFF))
+        {
+            button = BTN_RIGHT;
+        }
+
+        trys--;
+        delay(10);      // debouce then re-read
+    } while ((trys > 0) && !button);
     return button;
 }

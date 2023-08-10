@@ -38,6 +38,7 @@ void setup()
     uint8_t filament = 0;
     FilamentLoaded::get(filament);
     active_extruder = filament;
+    if(active_extruder == numSlots) { active_extruder = numSlots - 1; }
     startWakeTime = millis();
     led_blink(0);
     
@@ -81,19 +82,30 @@ void setup()
 //! @n b - blinking
 void manual_extruder_selector()
 {
-    set_led(active_extruder, COLOR_GREEN);
+    if (isIdlerParked) 
+    {
+        set_led(numSlots - 1, COLOR_BLUE);
+        delay(100);
+        clr_leds();
+    }
+    else
+    {
+        set_led(active_extruder, COLOR_GREEN);
+        delay(100);
+    }
+    delay(200);
 
     if (!isFilamentLoaded()) 
     {
         switch (buttonClicked()) 
         {
-        case ADC_Btn_Right:
+        case BTN_RIGHT:
             if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
-            if (active_extruder == numSlots) txPayload((char*)"X1---");
+            else if (isIdlerParked) txPayload((char*)"X1---");
             break;
-        case ADC_Btn_Left:
-            if (active_extruder == numSlots) txPayload((char*)"ZZZ--");
-            if (active_extruder > 0) set_positions(active_extruder - 1, true);
+        case BTN_LEFT:
+            if (isIdlerParked) set_positions(numSlots - 1);     // unpark idler
+            else if (active_extruder > 0) set_positions(active_extruder - 1, true);
             break;
         default:
             break;
@@ -103,8 +115,8 @@ void manual_extruder_selector()
     {
         switch (buttonClicked()) 
         {
-          case ADC_Btn_Right:
-          case ADC_Btn_Left:
+          case BTN_RIGHT:
+          case BTN_LEFT:
             txPayload((char*)"Z1---");
             delay(1000);
             txPayload((char*)"ZZZ--");
@@ -112,14 +124,6 @@ void manual_extruder_selector()
           default:
             break;
         }
-    }
-
-    if (active_extruder == numSlots) 
-    {
-        set_led(numSlots - 1, COLOR_BLUE);
-        delay(100);
-        clr_leds();
-        delay(100);
     }
 }
 
@@ -140,13 +144,13 @@ void loop()
     if (!isPrinting && !isEjected) 
     {
         manual_extruder_selector();
-        if (ADC_Btn_Middle == buttonClicked()) 
+        if (BTN_MIDDLE == buttonClicked()) 
         {
-            if (active_extruder < numSlots)
+            if (!isIdlerParked)
             {
                 feed_filament();
             }
-            else if (active_extruder == numSlots) 
+            else 
             {
                 txPayload((char*)"SETUP");
                 setupMenu();
@@ -157,7 +161,7 @@ void loop()
     {
         switch (buttonClicked()) 
         {
-        case ADC_Btn_Right:
+        case BTN_RIGHT:
             engage_filament_pulley(true);
             moveSmooth(AX_PUL, (PULLEY_EJECT_STEPS * -1), filament_lookup_table[5][filament_type[previous_extruder]], GLOBAL_ACC);
             engage_filament_pulley(false);
@@ -209,8 +213,7 @@ void process_commands(void)
     {
         if((tData2 - '0') < numSlots)
         {
-            active_extruder = tData2 - '0';
-            set_positions(active_extruder);
+            set_positions(tData2 - '0');
         }
     }
     // #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -332,14 +335,14 @@ void fixTheProblem(bool showPrevious)
 
     inErrorState = true;
 
-    while ((ADC_Btn_Middle != buttonClicked()) || isFilamentLoaded()) 
+    while ((BTN_MIDDLE != buttonClicked()) || isFilamentLoaded()) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         if (!showPrevious) 
         {
             switch (buttonClicked()) 
             {
-                case ADC_Btn_Right:
+                case BTN_RIGHT:
                     engage_filament_pulley(true);
                     if (isFilamentLoaded()) 
                     {
@@ -355,7 +358,7 @@ void fixTheProblem(bool showPrevious)
                     engage_filament_pulley(false);                 
                     disableStepper(AX_IDL);
                     break;
-                case ADC_Btn_Left:
+                case BTN_LEFT:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);                   
@@ -380,7 +383,7 @@ void fixTheProblem(bool showPrevious)
         {
             switch (buttonClicked()) 
             {
-                case ADC_Btn_Right:
+                case BTN_RIGHT:
                     engage_filament_pulley(true);
                     if (isFilamentLoaded()) 
                     {
@@ -396,7 +399,7 @@ void fixTheProblem(bool showPrevious)
                     engage_filament_pulley(false);
                     disableStepper(AX_IDL);
                     break;
-                case ADC_Btn_Left:
+                case BTN_LEFT:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[5][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);
@@ -414,11 +417,11 @@ void fixTheProblem(bool showPrevious)
             delay(100);
             if (isFilamentLoaded()) 
             {
-                set_led(active_extruder, COLOR_RED);
+                set_led(previous_extruder, COLOR_RED);
             } 
             else 
             {
-                set_led(active_extruder, COLOR_GREEN);
+                set_led(previous_extruder, COLOR_GREEN);
             }
         }
     }
@@ -438,7 +441,7 @@ void fixIdlCrash(void)
     disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
     inErrorState = true;
 
-    while (ADC_Btn_Middle != buttonClicked()) 
+    while (BTN_MIDDLE != buttonClicked()) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         delay(100);
