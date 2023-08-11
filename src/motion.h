@@ -10,12 +10,12 @@
 
 #define IDX_FIL_TABLE_MAX_SPEED_PUL             0
 #define IDX_FIL_TABLE_ACC_FEED_PUL              1
-#define IDX_FIL_TABLE_FILAMENT_PARKING_STEPS    3
-#define IDX_FIL_TABLE_FSENSOR_SENSE_STEPS       4
-#define IDX_FIL_TABLE_FEED_SPEED_PUL            5
-#define IDX_FIL_TABLE_L2EXSTAGEONE              6
-#define IDX_FIL_TABLE_L2EXSTAGETWO              7
-#define IDX_FIL_TABLE_UNLOADSPEED               8
+#define IDX_FIL_TABLE_FILAMENT_PARKING_STEPS    2
+#define IDX_FIL_TABLE_FSENSOR_SENSE_STEPS       3
+#define IDX_FIL_TABLE_FEED_SPEED_PUL            4
+#define IDX_FIL_TABLE_L2EXSTAGEONE              5
+#define IDX_FIL_TABLE_L2EXSTAGETWO              6
+#define IDX_FIL_TABLE_UNLOADSPEED               7
 
 extern int8_t filament_type[NUM_SLOTS_MAX];
 extern int filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED + 1][3]; // [X][Y]Two-dimensional Array of extruder and used variables

@@ -5,9 +5,6 @@
 
 #define WAKE_TIMER      300000        // 5m
 
-// speeds and accelerations
-#define GLOBAL_ACC      80000 // micro steps / s²
-
 //Button configuration
 #define BTN_RIGHT               4
 #define BTN_MIDDLE              2
@@ -41,17 +38,21 @@
 
 #define PIN_BUTTONS     A1
 
+// speeds and accelerations
+#define GLOBAL_ACC                          2000 // micro steps / s²
+#define MIN_SPEED_PUL                       100
+
 // Type Definitions
 // filament types (0: default; 1:flex; 2: PVA)
 // Default
-#define TYPE_0_MAX_SPEED_PUL                  4000  //  S/S
+#define TYPE_0_MAX_SPEED_PUL                  800 //4000  //  S/S
 #define TYPE_0_ACC_FEED_PUL                   5000  //  S/S/S
 #define TYPE_0_FILAMENT_PARKING_STEPS         -670  //  STEPS
 #define TYPE_0_FSENSOR_SENSE_STEPS            1500  //  STEPS
-#define TYPE_0_FEED_SPEED_PUL                  760  //  S/S
-#define TYPE_0_L2EXSTAGEONE                    350  //  S/S
-#define TYPE_0_L2EXSTAGETWO                    440  //  S/S
-#define TYPE_0_UNLOAD_SPEED                    750  //  S/S
+#define TYPE_0_FEED_SPEED_PUL                  400 //760  //  S/S
+#define TYPE_0_L2EXSTAGEONE                    300 //350  //  S/S
+#define TYPE_0_L2EXSTAGETWO                    400 //440  //  S/S
+#define TYPE_0_UNLOAD_SPEED                    500 //750  //  S/S
 // Flex
 #define TYPE_1_MAX_SPEED_PUL                  2500  //  S/S from 300
 #define TYPE_1_ACC_FEED_PUL                   1800  //  S/S/S

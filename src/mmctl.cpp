@@ -79,14 +79,13 @@ void toolChange(int new_extruder)
     set_led(active_extruder, COLOR_BLUE);
 
     previous_extruder = active_extruder;
-    active_extruder = new_extruder;
 
-    if (previous_extruder == active_extruder) 
+    if (previous_extruder == new_extruder) 
     {
         if (!isFilamentLoaded()) 
         {
             startWakeTime = millis();
-            set_positions(active_extruder);
+            set_positions(new_extruder);
             
             set_led(active_extruder, COLOR_BLUE);
             load_filament_withSensor();
@@ -98,8 +97,9 @@ void toolChange(int new_extruder)
         {
             unload_filament_withSensor(previous_extruder);
         }
-        set_positions(active_extruder, true);
+        set_positions(new_extruder, true);
         set_led(active_extruder, COLOR_BLUE);
+        delay(500);
         load_filament_withSensor();
     }
     set_led(active_extruder, COLOR_GREEN);
@@ -120,16 +120,6 @@ void eject_filament(uint8_t extruder)
     }
 
     set_positions(extruder, true);
-#if false
-    if (active_extruder == (numSlots - 1))
-    {
-        setSEL2pos(0);
-    }
-    else
-    {
-        setSEL2pos(numSlots);
-    }
-#endif
     isEjected = true;
 
     engage_filament_pulley(true);
@@ -259,7 +249,6 @@ void unload_filament_withSensor(uint8_t extruder)
         }
     }
     disableStepper(AX_PUL);
-    engage_filament_pulley(false);
 }
 
 /**
@@ -345,6 +334,7 @@ void engage_filament_pulley(bool engage)
     {
         parkIdler();
     }
+    delay(500);
 }
 
 void set_positions(uint8_t _next_extruder, bool update_extruders)

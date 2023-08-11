@@ -14,7 +14,6 @@ int8_t filament_type[NUM_SLOTS_MAX] = {0};
 int filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED + 1][3] =
 {{TYPE_0_MAX_SPEED_PUL,               TYPE_1_MAX_SPEED_PUL,               TYPE_2_MAX_SPEED_PUL},
  {TYPE_0_ACC_FEED_PUL,                TYPE_1_ACC_FEED_PUL,                TYPE_2_ACC_FEED_PUL},
- {0,                                  0,                                  0},  // Not used with IR_SENSOR
  {TYPE_0_FILAMENT_PARKING_STEPS,      TYPE_1_FILAMENT_PARKING_STEPS,      TYPE_2_FILAMENT_PARKING_STEPS},
  {TYPE_0_FSENSOR_SENSE_STEPS,         TYPE_1_FSENSOR_SENSE_STEPS,         TYPE_2_FSENSOR_SENSE_STEPS},
  {TYPE_0_FEED_SPEED_PUL,              TYPE_1_FEED_SPEED_PUL,              TYPE_2_FEED_SPEED_PUL},
@@ -118,7 +117,7 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
     MotReturn ret = MR_Success;
     if (withFindaDetection or withIR_SENSORDetection) ret = MR_Failed;
     float vMax = speed;
-    float v0 = 200; // steps/s, minimum speed
+    float v0 = MIN_SPEED_PUL; // steps/s, minimum speed
     float v = v0; // current speed
     int accSteps = 0; // number of steps for acceleration
     int stepsDone = 0;

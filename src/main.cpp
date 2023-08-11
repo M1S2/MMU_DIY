@@ -33,6 +33,8 @@ void setup()
     PORTA |= 0x02;  // Set Button ADC Pin High
     servoIdler.attach(PIN_IDL_SERVO);
 
+    DDRC |= (1 << PC4) | (1 << PC5) | (1 << PC6) | (1 << PC7);      // Set stepper and servo pins as outputs
+
     permanentStorageInit();
     //Load the active_extruder from the EEPROM
     uint8_t filament = 0;
@@ -49,6 +51,7 @@ void setup()
     parkIdler();
     delay(1000);
     set_positions(active_extruder);     // Move to previous active extruder
+    disableAllSteppers();
     led_blink(2);
 
     if (active_extruder != numSlots) txPayload((char*)"STR--");
@@ -199,22 +202,11 @@ void process_commands(void)
 #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if(tData1 == 'I')
     {
-        engage_filament_pulley(false);    
+        moveSmooth(AX_PUL, 500, 200 + (tData2 - '0') * 100);
     }
     else if(tData1 == 'B')
     {
-        engage_filament_pulley(true);
-    }
-    else if(tData1 == 'Z')
-    {
-        active_extruder = tData2 - '0';
-    }
-    else if(tData1 == 'Y')
-    {
-        if((tData2 - '0') < numSlots)
-        {
-            set_positions(tData2 - '0');
-        }
+        moveSmooth(AX_PUL, 1000, 300, 200 + (tData2 - '0') * 200);
     }
     // #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -254,6 +246,7 @@ void process_commands(void)
         set_led(active_extruder, COLOR_BLUE);
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
+        engage_filament_pulley(false);
         set_led(active_extruder, COLOR_GREEN);
         sendStringToPrinter(OK);
         isPrinting = false;
@@ -417,11 +410,11 @@ void fixTheProblem(bool showPrevious)
             delay(100);
             if (isFilamentLoaded()) 
             {
-                set_led(previous_extruder, COLOR_RED);
+                set_led(previous_extruder, COLOR_RED, active_extruder == previous_extruder);
             } 
             else 
             {
-                set_led(previous_extruder, COLOR_GREEN);
+                set_led(previous_extruder, COLOR_GREEN, active_extruder == previous_extruder);
             }
         }
     }
