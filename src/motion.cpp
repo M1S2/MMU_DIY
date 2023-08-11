@@ -10,17 +10,17 @@
 // public variables:
 BowdenLength bowdenLength;
 uint16_t BOWDEN_LENGTH = bowdenLength.get();
-int8_t filament_type[NUM_SLOTS_MAX] = { 0, 0, 0, 0, 0};
-int filament_lookup_table[9][3] =
-{{TYPE_0_MAX_SPPED_PUL,               TYPE_1_MAX_SPPED_PUL,               TYPE_2_MAX_SPPED_PUL},
+int8_t filament_type[NUM_SLOTS_MAX] = {0};
+int filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED + 1][3] =
+{{TYPE_0_MAX_SPEED_PUL,               TYPE_1_MAX_SPEED_PUL,               TYPE_2_MAX_SPEED_PUL},
  {TYPE_0_ACC_FEED_PUL,                TYPE_1_ACC_FEED_PUL,                TYPE_2_ACC_FEED_PUL},
  {0,                                  0,                                  0},  // Not used with IR_SENSOR
  {TYPE_0_FILAMENT_PARKING_STEPS,      TYPE_1_FILAMENT_PARKING_STEPS,      TYPE_2_FILAMENT_PARKING_STEPS},
- {TYPE_0_FSensor_Sense_STEPS,         TYPE_1_FSensor_Sense_STEPS,         TYPE_2_FSensor_Sense_STEPS},
+ {TYPE_0_FSENSOR_SENSE_STEPS,         TYPE_1_FSENSOR_SENSE_STEPS,         TYPE_2_FSENSOR_SENSE_STEPS},
  {TYPE_0_FEED_SPEED_PUL,              TYPE_1_FEED_SPEED_PUL,              TYPE_2_FEED_SPEED_PUL},
- {TYPE_0_L2ExStageOne,                TYPE_1_L2ExStageOne,                TYPE_2_L2ExStageOne},
- {TYPE_0_L2ExStageTwo,                TYPE_1_L2ExStageTwo,                TYPE_2_L2ExStageTwo},
- {TYPE_0_UnloadSpeed,                 TYPE_1_UnloadSpeed,                 TYPE_2_UnloadSpeed}
+ {TYPE_0_L2EXSTAGEONE,                TYPE_1_L2EXSTAGEONE,                TYPE_2_L2EXSTAGEONE},
+ {TYPE_0_L2EXSTAGETWO,                TYPE_1_L2EXSTAGETWO,                TYPE_2_L2EXSTAGETWO},
+ {TYPE_0_UNLOAD_SPEED,                TYPE_1_UNLOAD_SPEED,                TYPE_2_UNLOAD_SPEED}
 };
 
 Servo servoIdler;

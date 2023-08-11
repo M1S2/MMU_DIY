@@ -8,8 +8,17 @@
 #include "mmctl.h"
 #include "Servo.h"
 
+#define IDX_FIL_TABLE_MAX_SPEED_PUL             0
+#define IDX_FIL_TABLE_ACC_FEED_PUL              1
+#define IDX_FIL_TABLE_FILAMENT_PARKING_STEPS    3
+#define IDX_FIL_TABLE_FSENSOR_SENSE_STEPS       4
+#define IDX_FIL_TABLE_FEED_SPEED_PUL            5
+#define IDX_FIL_TABLE_L2EXSTAGEONE              6
+#define IDX_FIL_TABLE_L2EXSTAGETWO              7
+#define IDX_FIL_TABLE_UNLOADSPEED               8
+
 extern int8_t filament_type[NUM_SLOTS_MAX];
-extern int filament_lookup_table[9][3]; // [X][Y]Two-dimensional Array of extruder and used variables
+extern int filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED + 1][3]; // [X][Y]Two-dimensional Array of extruder and used variables
 extern uint16_t BOWDEN_LENGTH;
 extern BowdenLength bowdenLength;
 
@@ -22,7 +31,7 @@ enum MotReturn
 };
 
 void move_idler(int deltaAngle);
-void move_pulley(int steps, uint16_t speed = filament_lookup_table[0][0]);
+void move_pulley(int steps, uint16_t speed = filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][0]);
 void enableAllSteppers(void);
 void disableAllSteppers(void);
 void enableStepper(int axis);
