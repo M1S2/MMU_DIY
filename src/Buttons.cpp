@@ -162,11 +162,6 @@ void settings_bowden_length()
     {
         bowdenLength.increase();
     }
-    uint8_t tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
-    uint8_t tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
-    unsigned char tempW[5] = {'W', tempBowLenUpper, tempBowLenLower, BLK, BLK};
-    unsigned char tempV[5] = {0,0,0,BLK,BLK};
-    txPayload((char*)tempW);
     do 
     {
         delay(10);
@@ -183,18 +178,11 @@ void settings_bowden_length()
                 }
                 bowdenLength.~BowdenLength();
                 BOWDEN_LENGTH = BowdenLength::get();
-                txPayload((char*)"ZZR--");
                 break;
             case S::Extruded:
                 if (bowdenLength.increase())
                 {
                     move_pulley(bowdenLength.stepSize);
-                    tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
-                    tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
-                    tempV[0] = 'V';
-                    tempV[1] = tempBowLenUpper;
-                    tempV[2] = tempBowLenLower;
-                    txPayload((char*)tempV);
                     delay(200);
                 }
                 break;
@@ -207,24 +195,12 @@ void settings_bowden_length()
             {
             case S::NotExtruded:
                 state = S::Extruded;
-                tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
-                tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
-                tempV[0] = 'V';
-                tempV[1] = tempBowLenUpper;
-                tempV[2] = tempBowLenLower;
-                txPayload((char*)tempV);
                 load_filament_withSensor(bowdenLength.m_length);
                 break;
             case S::Extruded:
                 state = S::NotExtruded;
                 set_led(0, COLOR_WHITE);
                 set_led(numSlots - 1, COLOR_BLUE, false);
-                tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
-                tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
-                tempW[0] = 'W';
-                tempW[1] = tempBowLenUpper;
-                tempW[2] = tempBowLenLower;
-                txPayload((char*)tempW);
                 delay(50);
                 unload_filament_forSetup(bowdenLength.m_length);
                 break;
@@ -241,12 +217,6 @@ void settings_bowden_length()
                 if (bowdenLength.decrease())
                 {
                     move_pulley(-bowdenLength.stepSize);
-                    tempBowLenUpper = (0xFF & (((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio) >> 8));
-                    tempBowLenLower = (0xFF & ((bowdenLength.m_length - 150u)/AX_PUL_STEP_MM_Ratio));
-                    tempV[0] = 'V';
-                    tempV[1] = tempBowLenUpper;
-                    tempV[2] = tempBowLenLower;
-                    txPayload((char*)tempV);
                     delay(200);
                 }
                 break;

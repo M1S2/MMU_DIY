@@ -12,6 +12,7 @@
 #include "motion.h"
 #include "Buttons.h"
 #include "permanent_storage.h"
+#include "slotDetection.h"
 #include "config.h"
 #include "uart.h"
 #include <avr/wdt.h>

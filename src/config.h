@@ -20,8 +20,10 @@
 
 #define AX_PUL_STEP_MM_Ratio          19
 
-#define NUM_SLOTS_MAX       10
-#define NUM_SLOTS_DEFAULT   3
+#define NUM_SLOTS_MAX                   10
+#define NUM_SLOTS_DEFAULT               3
+#define SLOT_DETECTION_COMMON_RESISTOR  10000
+#define SLOT_DETECTION_SLOT_RESISTOR    100000
 
 #define PIN_LED_DIN     22      //PD7           // Pin PD7
 #define PIN_IDL_SERVO   24      //PC4           // Pin PC4
@@ -37,6 +39,7 @@
 #define isFilamentLoaded() digitalRead(PIN_FINDA)
 
 #define PIN_BUTTONS     A1
+#define PIN_R_DET       A2                      // Pin for detecting the number of available slots
 
 // speeds and accelerations
 #define GLOBAL_ACC                          2000 // micro steps / s²

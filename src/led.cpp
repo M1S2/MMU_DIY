@@ -1,11 +1,9 @@
-// led.c
+// led.cpp
 
 #include "led.h"
 #include "config.h"
 #include <avr/io.h>
 #include "main.h"
-
-#include "uart.h"
 
 WS2812 LEDS(NUM_SLOTS_MAX);
 
@@ -27,7 +25,7 @@ void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet)
 
 void clr_leds(void)
 {
-	for(int i = 0; i < numSlots; i++)
+	for(int i = 0; i < NUM_SLOTS_MAX; i++)
     {
         LEDS.set_crgb_at(i, COLOR_BLACK);
     }

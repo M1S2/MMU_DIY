@@ -27,16 +27,23 @@ void process_commands(void);
 //!
 void setup()
 {
-    #warning Add logic to detect the number of connected LEDs here
-    numSlots = NUM_SLOTS_DEFAULT;
     LEDS.setOutput(PIN_LED_DIN);
     PORTA |= 0x02;  // Set Button ADC Pin High
     servoIdler.attach(PIN_IDL_SERVO);
 
+    // Detect the number of connected slot PCBs and show it
+    numSlots = detect_numSlots();
+    for(int i = 0; i < numSlots; i++)
+    {
+        set_led(i, COLOR_BLUE, false);
+    }
+    delay(1000);
+    clr_leds();
+
     DDRC |= (1 << PC4) | (1 << PC5) | (1 << PC6) | (1 << PC7);      // Set stepper and servo pins as outputs
 
     permanentStorageInit();
-    //Load the active_extruder from the EEPROM
+    // Load the active_extruder from the EEPROM
     uint8_t filament = 0;
     FilamentLoaded::get(filament);
     active_extruder = filament;
@@ -198,18 +205,6 @@ void process_commands(void)
     } 
     sei();
     if (inErrorState) return;
-
-#warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if(tData1 == 'I')
-    {
-        moveSmooth(AX_PUL, 500, 200 + (tData2 - '0') * 100);
-    }
-    else if(tData1 == 'B')
-    {
-        moveSmooth(AX_PUL, 1000, 300, 200 + (tData2 - '0') * 200);
-    }
-    // #warning TESTCODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
     if (tData1 == 'T')
     {
