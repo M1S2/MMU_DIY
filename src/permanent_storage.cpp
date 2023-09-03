@@ -18,10 +18,10 @@
 //! needs to be changed to force EEPROM erase.
 typedef struct __attribute__ ((packed))
 {
-    uint8_t eepromLengthCorrection; //!< legacy bowden length correction
-    uint16_t eepromBowdenLen[5];    //!< Bowden length for each filament
-    uint8_t eepromFilamentStatus[3];//!< Majority vote status of eepromFilament wear leveling
-    uint8_t eepromFilament[800];    //!< Top nibble status, bottom nibble last filament loaded
+    uint8_t eepromLengthCorrection;             //!< legacy bowden length correction
+    uint16_t eepromBowdenLen[NUM_SLOTS_MAX];    //!< Bowden length for each filament
+    uint8_t eepromFilamentStatus[3];            //!< Majority vote status of eepromFilament wear leveling
+    uint8_t eepromFilament[800];                //!< Top nibble status, bottom nibble last filament loaded
 }
 eeprom_t;
 static_assert(sizeof(eeprom_t) - 2 <= E2END, "eeprom_t doesn't fit into EEPROM available.");
@@ -241,7 +241,7 @@ int16_t FilamentLoaded::getIndex()
 }
 
 //! @brief Get last filament loaded
-//! @par [in,out] filament filament number 0 to 4
+//! @par [in,out] filament filament number 0 to number of slots
 //! @retval true success
 //! @retval false failed
 bool FilamentLoaded::get(uint8_t& filament)
@@ -253,7 +253,7 @@ bool FilamentLoaded::get(uint8_t& filament)
     }
     const uint8_t rawFilament = eeprom_read_byte(&(eepromBase->eepromFilament[index]));
     filament = 0x0f & rawFilament;
-    if (filament > 4) 
+    if (filament > (numSlots - 1)) 
     {
         return false;
     }
