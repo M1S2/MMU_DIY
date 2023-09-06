@@ -38,13 +38,13 @@ void settings_fsensor_length();
 void setupMenu()
 {
     clr_leds();
-    delay(200);
+    _delay_ms(200);
     clr_leds();
     for (int i = 0; i < numSlots; i++)
     {
         set_led(i, COLOR_WHITE, false);
     }
-    delay(1200);
+    _delay_ms(1200);
     clr_leds();
 
     uint8_t _menu = 0;
@@ -72,7 +72,7 @@ void setupMenu()
             if (_menu > 0) 
             {
                 _menu--;
-                delay(800);
+                _delay_ms(800);
             }
             break;
         case BTN_MIDDLE:
@@ -106,7 +106,7 @@ void setupMenu()
             if (_menu < 4) 
             {
                 _menu++;
-                delay(800);
+                _delay_ms(800);
             }
             break;
         default:
@@ -115,13 +115,13 @@ void setupMenu()
     } while (!_exit);
 
     clr_leds();
-    delay(400);
+    _delay_ms(400);
     clr_leds();
     for (int i = 0; i < numSlots; i++)
     {
         set_led(i, COLOR_WHITE, false);
     }
-    delay(400);
+    _delay_ms(400);
     clr_leds();
     set_led(active_extruder, COLOR_GREEN);
 }
@@ -164,7 +164,7 @@ void settings_bowden_length()
     }
     do 
     {
-        delay(10);
+        _delay_ms(10);
         switch (buttonClicked()) 
         {
         case BTN_LEFT:
@@ -183,7 +183,7 @@ void settings_bowden_length()
                 if (bowdenLength.increase())
                 {
                     move_pulley(bowdenLength.stepSize);
-                    delay(200);
+                    _delay_ms(200);
                 }
                 break;
             default:
@@ -201,7 +201,7 @@ void settings_bowden_length()
                 state = S::NotExtruded;
                 set_led(0, COLOR_WHITE);
                 set_led(numSlots - 1, COLOR_BLUE, false);
-                delay(50);
+                _delay_ms(50);
                 unload_filament_forSetup(bowdenLength.m_length);
                 break;
             default:
@@ -217,7 +217,7 @@ void settings_bowden_length()
                 if (bowdenLength.decrease())
                 {
                     move_pulley(-bowdenLength.stepSize);
-                    delay(200);
+                    _delay_ms(200);
                 }
                 break;
             default:
@@ -258,7 +258,7 @@ uint8_t buttonClicked()
         }
 
         trys--;
-        delay(10);      // debouce then re-read
+        _delay_ms(10);      // debouce then re-read
     } while ((trys > 0) && !button);
     return button;
 }

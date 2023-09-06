@@ -166,6 +166,7 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
         stepsLeft--;
 
         float dt = 1 / v;
+#warning Check if this is working for the ATMega32
         delayMicroseconds(1e6 * dt);
 
         switch (st) 

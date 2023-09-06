@@ -25,8 +25,13 @@
 #define SLOT_DETECTION_COMMON_RESISTOR  10000
 #define SLOT_DETECTION_SLOT_RESISTOR    100000
 
-#define PIN_LED_DIN     22      //PD7           // Pin PD7
-#define PIN_IDL_SERVO   24      //PC4           // Pin PC4
+#ifdef ENV_ARDUINO
+#define PIN_LED_DIN     22
+#define PIN_IDL_SERVO   24
+#else
+#define PIN_LED_DIN     PIN_PD7     //22        // Pin PD7
+#define PIN_IDL_SERVO   PIN_PC4     //24        // Pin PC4
+#endif
 
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5
 #define PIN_PUL_DIR_LOW (PORTC &= ~0x20)        // Pin PC5

@@ -31,10 +31,10 @@ bool feed_filament(void)
         {
             if (moveSmooth(AX_PUL, 4000, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success) 
             {
-                delay(10);
+                _delay_ms(10);
                 moveSmooth(AX_PUL, 500, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
                 moveSmooth(AX_PUL, -500, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC, true);
-                delay(10);
+                _delay_ms(10);
                 moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
                 set_led(active_extruder, COLOR_GREEN);
                 _loaded = true;
@@ -44,14 +44,14 @@ bool feed_filament(void)
             {
                 if (_c < 1)                      // Two attempt to load then give up
                 {
-                    delay(10);
+                    _delay_ms(10);
                     moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
                     fixTheProblem();
                     engage_filament_pulley(true);
                 } 
                 else 
                 {
-                    delay(10);
+                    _delay_ms(10);
                     moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
                     engage_filament_pulley(false);
                     _loaded = false;
@@ -66,7 +66,7 @@ bool feed_filament(void)
     else 
     {
         txPayload((char*)"Z1---");
-        delay(1500);
+        _delay_ms(1500);
         txPayload((char*)"ZZZ--");
     }
     return _loaded;
@@ -99,7 +99,7 @@ void toolChange(int new_extruder)
         }
         set_positions(new_extruder, true);
         set_led(active_extruder, COLOR_BLUE);
-        delay(500);
+        _delay_ms(500);
         load_filament_withSensor();
     }
     set_led(active_extruder, COLOR_GREEN);
@@ -205,7 +205,7 @@ void unload_filament_withSensor(uint8_t extruder)
 {
     int unloadFINDACheckSteps = -3000;
     engage_filament_pulley(true); // get in contact with filament
-    delay(40);
+    _delay_ms(40);
     moveSmooth(AX_PUL, -(30*AX_PUL_STEP_MM_Ratio), filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED][filament_type[extruder]], GLOBAL_ACC);
 
     if (isFilamentLoaded()) 
@@ -261,7 +261,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
     if (isFilamentLoaded()) 
     { 
         engage_filament_pulley(true); // get in contact with filament
-        delay(40);
+        _delay_ms(40);
         if (moveSmooth(AX_PUL, (distance * -1), filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][filament_type[extruder]], filament_lookup_table[IDX_FIL_TABLE_ACC_FEED_PUL][filament_type[extruder]], true) == MR_Success)
         {
             goto loop;
@@ -334,7 +334,7 @@ void engage_filament_pulley(bool engage)
     {
         parkIdler();
     }
-    delay(500);
+    _delay_ms(500);
 }
 
 void set_positions(uint8_t _next_extruder, bool update_extruders)

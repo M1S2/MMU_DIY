@@ -6,7 +6,7 @@
 #include "permanent_storage.h"
 #include "config.h"
 #include "mmctl.h"
-#include "Servo.h"
+#include "Servo/src/Servo.h"
 
 #define IDX_FIL_TABLE_MAX_SPEED_PUL             0
 #define IDX_FIL_TABLE_ACC_FEED_PUL              1

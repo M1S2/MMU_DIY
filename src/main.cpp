@@ -37,7 +37,7 @@ void setup()
     {
         set_led(i, COLOR_BLUE, false);
     }
-    delay(1000);
+    _delay_ms(1000);
     clr_leds();
 
     DDRC |= (1 << PC4) | (1 << PC5) | (1 << PC6) | (1 << PC7);      // Set stepper and servo pins as outputs
@@ -56,7 +56,7 @@ void setup()
     led_blink(1);
 
     parkIdler();
-    delay(1000);
+    _delay_ms(1000);
     set_positions(active_extruder);     // Move to previous active extruder
     disableAllSteppers();
     led_blink(2);
@@ -95,15 +95,15 @@ void manual_extruder_selector()
     if (isIdlerParked) 
     {
         set_led(numSlots - 1, COLOR_BLUE);
-        delay(100);
+        _delay_ms(100);
         clr_leds();
     }
     else
     {
         set_led(active_extruder, COLOR_GREEN);
-        delay(100);
+        _delay_ms(100);
     }
-    delay(200);
+    _delay_ms(200);
 
     if (!isFilamentLoaded()) 
     {
@@ -128,7 +128,7 @@ void manual_extruder_selector()
           case BTN_RIGHT:
           case BTN_LEFT:
             txPayload((char*)"Z1---");
-            delay(1000);
+            _delay_ms(1000);
             txPayload((char*)"ZZZ--");
             break;
           default:
@@ -225,7 +225,7 @@ void process_commands(void)
             if (isFilamentLoaded()) 
             {
                 txPayload((char*)"Z1---");
-                delay(1500);
+                _delay_ms(1500);
                 txPayload((char*)"ZZZ--");
             } 
             else 
@@ -355,9 +355,9 @@ void fixTheProblem(bool showPrevious)
                 default:
                     break;
             }
-            delay(100);
+            _delay_ms(100);
             clr_leds();
-            delay(100);
+            _delay_ms(100);
             if (isFilamentLoaded()) 
             {
                 set_led(active_extruder, COLOR_RED);
@@ -396,13 +396,13 @@ void fixTheProblem(bool showPrevious)
                 default:
                     break;
             }
-            delay(100);
+            _delay_ms(100);
             clr_leds();
             if (active_extruder != previous_extruder) 
             {
                 set_led(active_extruder, COLOR_GREEN);
             }
-            delay(100);
+            _delay_ms(100);
             if (isFilamentLoaded()) 
             {
                 set_led(previous_extruder, COLOR_RED, active_extruder == previous_extruder);
@@ -413,7 +413,7 @@ void fixTheProblem(bool showPrevious)
             }
         }
     }
-    delay(100);
+    _delay_ms(100);
     
     inErrorState = false;
     txPayload((char*)"ZZZ--"); // Clear MK3 Message
@@ -432,9 +432,9 @@ void fixIdlCrash(void)
     while (BTN_MIDDLE != buttonClicked()) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
-        delay(100);
+        _delay_ms(100);
         clr_leds();
-        delay(100);
+        _delay_ms(100);
         if (isFilamentLoaded()) 
         {
             set_led(active_extruder, COLOR_RED);
