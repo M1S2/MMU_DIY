@@ -46,7 +46,7 @@ ISR(USART0_RX_vect)
 {
     readRxBuffer = UDR0;
 #else
-ISR(USART_RX_vect)
+ISR(USART_RXC_vect)
 {
     readRxBuffer = UDR;
 #endif

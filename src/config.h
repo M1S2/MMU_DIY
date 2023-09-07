@@ -18,7 +18,7 @@
 #define AX_PUL 0 // Pulley (Filament Drive)
 #define AX_IDL 1 // Idler
 
-#define AX_PUL_STEP_MM_Ratio          19
+#define AX_PUL_STEP_MM_Ratio            19
 
 #define NUM_SLOTS_MAX                   10
 #define NUM_SLOTS_DEFAULT               3
@@ -28,9 +28,11 @@
 #ifdef ENV_ARDUINO
 #define PIN_LED_DIN     22
 #define PIN_IDL_SERVO   24
+#define PIN_LED_DEBUG   26
 #else
-#define PIN_LED_DIN     PIN_PD7     //22        // Pin PD7
-#define PIN_IDL_SERVO   PIN_PC4     //24        // Pin PC4
+#define PIN_LED_DIN     PIN_PD7
+#define PIN_IDL_SERVO   PIN_PC4
+#define PIN_LED_DEBUG   PIN_PD2 
 #endif
 
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5

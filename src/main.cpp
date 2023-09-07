@@ -27,6 +27,9 @@ void process_commands(void);
 //!
 void setup()
 {
+    pinMode(PIN_LED_DEBUG, OUTPUT);
+    digitalWrite(PIN_LED_DEBUG, HIGH);
+
     LEDS.setOutput(PIN_LED_DIN);
     PORTA |= 0x02;  // Set Button ADC Pin High
     servoIdler.attach(PIN_IDL_SERVO);
@@ -62,7 +65,10 @@ void setup()
     led_blink(2);
 
     if (active_extruder != numSlots) txPayload((char*)"STR--");
+
     sendStringToPrinter((char*)"start");
+
+    digitalWrite(PIN_LED_DEBUG, LOW);
 }
 
 //! @brief Select filament menu

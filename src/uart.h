@@ -3,7 +3,7 @@
 #define _UART_H
 
 #define USART_BAUDRATE  115200UL
-#define BAUD_PRESCALE   (((F_CPU / (USART_BAUDRATE * 8UL))) - 1)
+#define BAUD_PRESCALE   round(((F_CPU / (float)(USART_BAUDRATE * 8UL))) - 1)
 #define OK              (char*)"ok"
 #define BLK             0x2D  // Blank data filler
 
