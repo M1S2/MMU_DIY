@@ -64,8 +64,6 @@ void setup()
     disableAllSteppers();
     led_blink(2);
 
-    if (active_extruder != numSlots) txPayload((char*)"STR--");
-
     sendStringToPrinter((char*)"start");
 
     digitalWrite(PIN_LED_DEBUG, LOW);
@@ -117,7 +115,6 @@ void manual_extruder_selector()
         {
         case BTN_RIGHT:
             if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
-            else if (isIdlerParked) txPayload((char*)"X1---");
             break;
         case BTN_LEFT:
             if (isIdlerParked) set_positions(numSlots - 1);     // unpark idler
@@ -129,17 +126,7 @@ void manual_extruder_selector()
     } 
     else 
     {
-        switch (buttonClicked()) 
-        {
-          case BTN_RIGHT:
-          case BTN_LEFT:
-            txPayload((char*)"Z1---");
-            _delay_ms(1000);
-            txPayload((char*)"ZZZ--");
-            break;
-          default:
-            break;
-        }
+        /* no manual extruder selection supported when filament is loaded */
     }
 }
 
@@ -168,7 +155,6 @@ void loop()
             }
             else 
             {
-                txPayload((char*)"SETUP");
                 setupMenu();
             }
         }
@@ -230,9 +216,7 @@ void process_commands(void)
         {
             if (isFilamentLoaded()) 
             {
-                txPayload((char*)"Z1---");
-                _delay_ms(1500);
-                txPayload((char*)"ZZZ--");
+                /* Filament is already loaded */
             } 
             else 
             {
@@ -422,7 +406,6 @@ void fixTheProblem(bool showPrevious)
     _delay_ms(100);
     
     inErrorState = false;
-    txPayload((char*)"ZZZ--"); // Clear MK3 Message
 
     startWakeTime = millis();
     set_positions(active_extruder);     // Return to previous active extruder

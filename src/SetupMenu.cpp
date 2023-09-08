@@ -44,7 +44,6 @@ void setupMenu()
     clr_leds();
 
     uint8_t _menu = 0;
-    uint8_t _menu_last_cycle = 10;
     bool _exit = false;
     bool eraseLocked = true;
     inErrorState = true;
@@ -52,15 +51,6 @@ void setupMenu()
     do 
     {
         set_led(_menu, COLOR_WHITE);
-        if (_menu != _menu_last_cycle) 
-        {
-            if (_menu == 0) txPayload((char*)"X1---");
-            else if (_menu == 1) txPayload((char*)"X2---");
-            else if (_menu == 2) txPayload((char*)"X5---");
-            else if (_menu == 3) txPayload((char*)"X6---");
-            else if (_menu == 4) txPayload((char*)"X7---");
-        }
-        _menu_last_cycle = _menu;
 
         switch (buttonClicked()) 
         {
@@ -93,7 +83,6 @@ void setupMenu()
                 break;
             case 4: // exit menu
                 set_positions(numSlots - 1, true);
-                txPayload((char*)"ZZR--");
                 _exit = true;
                 break;
             }

@@ -103,12 +103,6 @@ void sendStringToPrinter(char* str)
 #endif
 }
 
-void txPayload(char* payload)
-{
-    #warning This should be disabled when development is finished (when used with Marlin FW). Because Marlin can not handle this.
-    sendStringToPrinter(payload);
-}
-
 void txFINDAStatus(void)
 {
     char tempFinda[10];

@@ -18,7 +18,6 @@ extern volatile bool confirmedPayload, IR_SENSOR;
 
 void initUart();
 void sendStringToPrinter(char* str);                 // send the string (with additional newline characters) to the printer
-extern void txPayload(char*);
 extern void txFINDAStatus(void);
 
 #endif //_UART_H

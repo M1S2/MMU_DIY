@@ -65,9 +65,7 @@ bool feed_filament(void)
     } 
     else 
     {
-        txPayload((char*)"Z1---");
-        _delay_ms(1500);
-        txPayload((char*)"ZZZ--");
+        /* Filament is already loaded */
     }
     return _loaded;
 }
@@ -166,7 +164,10 @@ void load_filament_withSensor(uint16_t setupBowLen)
             {
                 moveSmooth(AX_PUL, 1000, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]]); // Go 1000 steps more to get past FINDA before ramping.
                 moveSmooth(AX_PUL, BOWDEN_LENGTH - 1000, filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_ACC_FEED_PUL][filament_type[active_extruder]]);      // Load filament down to near MK3-FSensor
-                txPayload((char*)"IRSEN");
+                
+                #warning This should be removed. It is useful while development to see on the serial monitor, when the printers filament sensor is used
+                sendStringToPrinter((char*)"IRSEN");
+
                 IR_SENSOR   = false;
                 if (moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FSENSOR_SENSE_STEPS][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
@@ -175,7 +176,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
                 }
                 else
                 {
-                    txPayload((char*)"ZL2"); // Report Loading failed @ IR_SENSOR
+                    // Loading failed @ IR_SENSOR
                     fixTheProblem();
                 }
             }
@@ -189,7 +190,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
             }
             else
             {
-                txPayload((char*)"ZL1--"); // Report Loading failed @ FINDA
+                // Loading failed @ FINDA
                 fixTheProblem();
             }
         }
@@ -225,7 +226,7 @@ void unload_filament_withSensor(uint8_t extruder)
         } 
         else if (isFilamentLoaded()) 
         {
-            txPayload((char*)"ZU---"); // Report Unloading failed to MK3
+            // Unloading failed to MK3
             if (extruder != active_extruder) 
             {
                 fixTheProblem(true);
@@ -238,7 +239,7 @@ void unload_filament_withSensor(uint8_t extruder)
     }
     else
     {
-        txPayload((char*)"ZU---"); // Report Unloading failed to MK3
+        // Unloading failed to MK3
         if (extruder != active_extruder)
         {
             fixTheProblem(true);
@@ -277,7 +278,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         } 
         else if (isFilamentLoaded()) 
         {
-            txPayload((char*)"ZU---"); // Report Unloading failed to MK3
+            // Unloading failed to MK3
             if (extruder != active_extruder)
             {
                 fixTheProblem(true);

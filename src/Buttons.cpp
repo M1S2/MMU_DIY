@@ -1,13 +1,8 @@
 //! @file
 
 #include "Buttons.h"
-#include "main.h"
-#include "led.h"
-#include "mmctl.h"
-#include "motion.h"
-#include "permanent_storage.h"
-#include "uart.h"
 #include "config.h"
+//#include "uart.h"
 
 //! @brief Is button pushed?
 //! we use an analog input with different DC-levels for each button
