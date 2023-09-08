@@ -6,8 +6,11 @@
 #include <stdint.h>
 #include "Arduino.h"
 
+#define BTN_RIGHT               4
+#define BTN_MIDDLE              2
+#define BTN_LEFT                1
+#define BTN_NONE                0
 
-void setupMenu();
 uint8_t buttonClicked();
 
 #endif //_BUTTONS_h

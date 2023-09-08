@@ -6,13 +6,9 @@
 #define WAKE_TIMER      300000        // 5m
 
 //Button configuration
-#define BTN_RIGHT               4
-#define BTN_MIDDLE              2
-#define BTN_LEFT                1
-#define BTN_NONE                0
-#define BTN_RIGHT_ADC_VALUE     0       // Button connects Pin to GND directly
-#define BTN_MIDDLE_ADC_VALUE    93      // Resistor divider with 15k to +5V and 1,5k to GND --> value = (1,5k / (15k + 1,5k)) * 1023
-#define BTN_LEFT_ADC_VALUE      171     // Resistor divider with 15k to +5V and 2*1,5k to GND --> value = (3k / (15k + 3k)) * 1023
+#define BTN_RIGHT_ADC_VALUE     14      // Button connects Pin to GND directly
+#define BTN_MIDDLE_ADC_VALUE    141     // Resistor divider with 15k to +5V and 1,5k to GND --> value = (1,5k / (15k + 1,5k)) * 1023
+#define BTN_LEFT_ADC_VALUE      240     // Resistor divider with 15k to +5V and 2*1,5k to GND --> value = (3k / (15k + 3k)) * 1023
 #define BTN_VALID_ADC_DIFF      20      // Difference around the button ADC values that is regarded as button press (valid range = ADC_VALUE +- ADC_DIFF)
 
 #define AX_PUL 0 // Pulley (Filament Drive)

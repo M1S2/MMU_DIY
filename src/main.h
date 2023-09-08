@@ -11,6 +11,7 @@
 #include "mmctl.h"
 #include "motion.h"
 #include "Buttons.h"
+#include "SetupMenu.h"
 #include "permanent_storage.h"
 #include "slotDetection.h"
 #include "config.h"
