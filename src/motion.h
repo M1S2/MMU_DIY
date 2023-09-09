@@ -32,10 +32,8 @@ enum MotReturn
 
 void move_idler(int deltaAngle);
 void move_pulley(int steps, uint16_t speed = filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][0]);
-void enableAllSteppers(void);
-void disableAllSteppers(void);
-void enableStepper(int axis);
-void disableStepper(int axis);
+void enableStepper();
+void disableStepper();
 void parkIdler();
 
 MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc = GLOBAL_ACC, bool withFindaDetection = false, bool withIR_SENSORDetection = false);

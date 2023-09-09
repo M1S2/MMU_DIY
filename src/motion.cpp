@@ -62,38 +62,14 @@ uint16_t set_pulley_direction(int steps)
     return steps;
 }
 
-void enableAllSteppers(void)
+void enableStepper()
 {
     PIN_PUL_EN_LOW;
 }
 
-void disableAllSteppers(void)
+void disableStepper()
 {
     PIN_PUL_EN_HIGH;
-}
-
-void enableStepper(int axis)
-{
-    switch (axis) 
-    {
-    case AX_PUL:
-        PIN_PUL_DIR_LOW;
-        break;
-    case AX_IDL:
-        break;
-    }
-}
-
-void disableStepper(int axis)
-{
-    switch (axis) 
-    {
-    case AX_PUL:
-        PIN_PUL_DIR_HIGH;
-        break;
-    case AX_IDL:
-        break;
-    }
 }
 
 void parkIdler()
@@ -112,7 +88,7 @@ void parkIdler()
  */
 MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFindaDetection, bool withIR_SENSORDetection)
 {
-    enableStepper(axis);
+    enableStepper();
     startWakeTime = millis();
     MotReturn ret = MR_Success;
     if (withFindaDetection or withIR_SENSORDetection) ret = MR_Failed;
@@ -166,7 +142,6 @@ MotReturn moveSmooth(uint8_t axis, int steps, int speed, float acc, bool withFin
         stepsLeft--;
 
         float dt = 1 / v;
-#warning Check if this is working for the ATMega32
         delayMicroseconds(1e6 * dt);
 
         switch (st) 

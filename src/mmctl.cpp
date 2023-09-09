@@ -60,7 +60,7 @@ bool feed_filament(void)
                 _c++;
             }
         }
-        disableStepper(AX_PUL);
+        disableStepper();
         engage_filament_pulley(false);
     } 
     else 
@@ -127,7 +127,7 @@ void eject_filament(uint8_t extruder)
 
     // unpark idler so user can easily remove filament
     engage_filament_pulley(false);
-    disableStepper(AX_PUL);
+    disableStepper();
 }
 
 void recover_after_eject()
@@ -164,10 +164,6 @@ void load_filament_withSensor(uint16_t setupBowLen)
             {
                 moveSmooth(AX_PUL, 1000, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]]); // Go 1000 steps more to get past FINDA before ramping.
                 moveSmooth(AX_PUL, BOWDEN_LENGTH - 1000, filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_ACC_FEED_PUL][filament_type[active_extruder]]);      // Load filament down to near MK3-FSensor
-                
-                #warning This should be removed. It is useful while development to see on the serial monitor, when the printers filament sensor is used
-                sendStringToPrinter((char*)"IRSEN");
-
                 IR_SENSOR   = false;
                 if (moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FSENSOR_SENSE_STEPS][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
@@ -249,7 +245,7 @@ void unload_filament_withSensor(uint8_t extruder)
             fixTheProblem();
         }
     }
-    disableStepper(AX_PUL);
+    disableStepper();
 }
 
 /**
@@ -290,7 +286,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
         }
     }
     
-    disableStepper(AX_PUL);
+    disableStepper();
     engage_filament_pulley(false);
 }
 
@@ -312,7 +308,7 @@ void load_filament_into_extruder()
     move_pulley(150, filament_lookup_table[IDX_FIL_TABLE_L2EXSTAGEONE][filament_type[active_extruder]]);
     move_pulley(170, filament_lookup_table[IDX_FIL_TABLE_L2EXSTAGEONE][filament_type[active_extruder]]);
     move_pulley(820, filament_lookup_table[IDX_FIL_TABLE_L2EXSTAGETWO][filament_type[active_extruder]]);
-    disableStepper(AX_PUL);
+    disableStepper();
     engage_filament_pulley(false); // release contact with filament
     set_led(active_extruder, COLOR_GREEN);
 }

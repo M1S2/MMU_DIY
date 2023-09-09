@@ -61,7 +61,7 @@ void setup()
     parkIdler();
     _delay_ms(1000);
     set_positions(active_extruder);     // Move to previous active extruder
-    disableAllSteppers();
+    disableStepper();
     led_blink(2);
 
     sendStringToPrinter((char*)"start");
@@ -175,7 +175,7 @@ void loop()
 
     if (((millis() - startWakeTime) > WAKE_TIMER) && !isFilamentLoaded() && !isPrinting)
     {
-        disableAllSteppers();
+        disableStepper();
     }
 }
 
@@ -334,13 +334,11 @@ void fixTheProblem(bool showPrevious)
                         moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]]);
                     }
                     engage_filament_pulley(false);                 
-                    disableStepper(AX_IDL);
                     break;
                 case BTN_LEFT:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);                   
-                    disableStepper(AX_IDL);
                     break;
                 default:
                     break;
@@ -375,13 +373,11 @@ void fixTheProblem(bool showPrevious)
                         moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
                     }
                     engage_filament_pulley(false);
-                    disableStepper(AX_IDL);
                     break;
                 case BTN_LEFT:
                     engage_filament_pulley(true);
                     moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
                     engage_filament_pulley(false);
-                    disableStepper(AX_IDL);
                     break;
                 default:
                     break;
@@ -415,7 +411,6 @@ void fixTheProblem(bool showPrevious)
 
 void fixIdlCrash(void) 
 {
-    disableStepper(AX_IDL);                            // turn OFF the idler stepper motor
     inErrorState = true;
 
     while (BTN_MIDDLE != buttonClicked()) 
