@@ -30,7 +30,7 @@ enum MotReturn
     MR_Failed
 };
 
-void move_idler(int deltaAngle);
+void move_idler(int absoluteAngle);
 void move_pulley(int steps, uint16_t speed = filament_lookup_table[IDX_FIL_TABLE_MAX_SPEED_PUL][0]);
 void enableStepper();
 void disableStepper();

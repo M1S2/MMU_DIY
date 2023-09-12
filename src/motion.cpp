@@ -23,19 +23,17 @@ int filament_lookup_table[IDX_FIL_TABLE_UNLOADSPEED + 1][3] =
 };
 
 Servo servoIdler;
-int currentServoAngle = 0;
 
 // private functions:
 static uint16_t set_pulley_direction(int steps);
 
 /**
  * @brief move_idler
- * @param deltaAngle, delta angle by which the servo is rotated
+ * @param absoluteAngle, angle to which the servo is rotated
  */
-void move_idler(int deltaAngle)
+void move_idler(int absoluteAngle)
 {
-    currentServoAngle += deltaAngle;
-    servoIdler.write(currentServoAngle);
+    servoIdler.write(absoluteAngle);
 }
 
 void move_pulley(int steps, uint16_t speed)
@@ -70,13 +68,6 @@ void enableStepper()
 void disableStepper()
 {
     PIN_PUL_EN_HIGH;
-}
-
-void parkIdler()
-{
-    currentServoAngle = IDLER_PARK_ANGLE_ABSOLUTE;
-    move_idler(0);
-    isIdlerParked = true;
 }
 
 /**

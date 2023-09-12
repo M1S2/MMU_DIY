@@ -54,7 +54,7 @@ void setupMenu()
 
         switch (buttonClicked()) 
         {
-        case BTN_RIGHT:
+        case BTN_LEFT:
             if (_menu > 0) 
             {
                 _menu--;
@@ -87,7 +87,7 @@ void setupMenu()
                 break;
             }
             break;
-        case BTN_LEFT:
+        case BTN_RIGHT:
             if (_menu < 4) 
             {
                 _menu++;

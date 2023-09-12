@@ -16,7 +16,7 @@
 
 #define AX_PUL_STEP_MM_Ratio            19
 
-#define NUM_SLOTS_MAX                   10
+#define NUM_SLOTS_MAX                   5
 #define NUM_SLOTS_DEFAULT               3
 #define SLOT_DETECTION_COMMON_RESISTOR  10000
 #define SLOT_DETECTION_SLOT_RESISTOR    100000
@@ -80,8 +80,8 @@
 
 // Calibration
 #define PULLEY_EJECT_STEPS          2000
+#define IDLER_SLOT_ANGLES_DEFAULT   { 0, 1 * 30, 2 * 30, 3 * 30, 4 * 30 }
 #define IDLER_NEXT_FILAMENT_ANGLE   -45     // angle that the idler must rotate between two consecutive filaments
-//#define IDLER_HOME_ANGLE_ABSOLUTE   0       // absolute angle in degree at which the idler is homed
 #define IDLER_PARK_ANGLE_ABSOLUTE   180     // absolute angle in degree at which the idler is parked. The next filament angle is calculated from this point.
 
 // CONFIG

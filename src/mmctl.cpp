@@ -15,9 +15,11 @@
 // public variables:
 int8_t active_extruder = -1;
 int8_t previous_extruder = -1;
-bool isIdlerParked = true;
 bool isPrinting = false;
 bool isEjected = false;
+bool isIdlerEngaged = true;
+
+uint8_t idlerSlotAngles[NUM_SLOTS_MAX] = IDLER_SLOT_ANGLES_DEFAULT;
 
 bool feed_filament(void)
 {
@@ -138,7 +140,6 @@ void recover_after_eject()
     }
     startWakeTime = millis();
     set_positions(active_extruder);     // Return to previous active extruder
-    engage_filament_pulley(!isIdlerParked);
     isEjected = false;
 }
 
@@ -181,7 +182,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
         {
             if (retries > 0)
             { 
-                set_idler_toLast_positions(active_extruder);
+                setIDL2pos(active_extruder);
                 retries--;
             }
             else
@@ -322,15 +323,15 @@ void load_filament_into_extruder()
  */
 void engage_filament_pulley(bool engage)
 {
-    if (isIdlerParked && engage)  // get idler in contact with filament
+    if (!isIdlerEngaged && engage)  // get idler in contact with filament
     {
-        setIDL2pos(active_extruder);
-        isIdlerParked = false;
+        isIdlerEngaged = true;
     } 
-    else if (!isIdlerParked && !engage)  // park idler so filament can move freely
+    else if (isIdlerEngaged && !engage)  // park idler so filament can move freely
     {
-        parkIdler();
+        isIdlerEngaged = false;
     }
+    setIDL2pos(active_extruder);
     _delay_ms(500);
 }
 
@@ -346,24 +347,26 @@ void set_positions(uint8_t _next_extruder, bool update_extruders)
 
 void setIDL2pos(uint8_t _next_extruder)
 {
-    if (_next_extruder == numSlots)
+    if (_next_extruder >= numSlots)
     {
-        parkIdler();
+        _next_extruder = numSlots - 1;
+    }
+
+    if(isIdlerEngaged)
+    {
+        move_idler(idlerSlotAngles[_next_extruder]);
     }
     else
     {
-        int8_t active_pos = isIdlerParked ? numSlots : active_extruder;
-        int _idler_steps = (active_pos - _next_extruder) * IDLER_NEXT_FILAMENT_ANGLE;
-
-        move_idler(_idler_steps);
-        active_extruder = _next_extruder;
-        isIdlerParked = false;
+        if(_next_extruder < numSlots - 2)
+        {
+            move_idler(idlerSlotAngles[_next_extruder + 1]);
+        }
+        else
+        {
+            move_idler(idlerSlotAngles[_next_extruder - 1]);
+        }
     }
-}
 
-void set_idler_toLast_positions(uint8_t _next_extruder)
-{
-    bool previouslyEngaged = !isIdlerParked;
-    setIDL2pos(_next_extruder);
-    engage_filament_pulley(previouslyEngaged);
+    active_extruder = _next_extruder;
 }

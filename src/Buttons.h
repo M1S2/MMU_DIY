@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include "Arduino.h"
 
+#define BTN_MODIFIER_LONG_PRESS 8
+#define BTN_MODIFIER_NONE       0
+
 #define BTN_RIGHT               4
 #define BTN_MIDDLE              2
 #define BTN_LEFT                1

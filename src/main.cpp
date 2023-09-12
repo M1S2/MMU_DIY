@@ -10,20 +10,14 @@ long startWakeTime;
 int numSlots;
 void process_commands(void);
 
-//! @brief Initialization after reset
-//!
-//! button | action
-//! ------ | ------
-//! middle | enter setup
-//! right  | continue after error
-//!
 //! LED indication of states
 //!
-//! Slot0   | Slot1 | Slot2 | Slot3 | Slot4 | meaning
-//! ------- | ----- | ----- | ----- | ----- | -----------------------
-//! blink   | 0     | 0     | 0     | 0     | EEPROM initialized
-//! 0       | blink | 0     | 0     | 0     | UART initialized
-//! 0       | 0     | blink | 0     | 0     | Idler initialized
+//! Slot0   | Slot1   | Slot2   | Slot3   | Slot4   | meaning
+//! ------- | ------- | ------- | ------- | ------- | -----------------------
+//! on/off  | on/off  | on/off  | on/off  | on/off  | Show the number of slots (number of on LEDs)
+//! blink   | 0       | 0       | 0       | 0       | EEPROM initialized
+//! 0       | blink   |  0      | 0       | 0       | UART initialized
+//! 0       | 0       | blink   | 0       | 0       | Idler/Stepper initialized
 //!
 void setup()
 {
@@ -58,8 +52,6 @@ void setup()
     initUart();
     led_blink(1);
 
-    parkIdler();
-    _delay_ms(1000);
     set_positions(active_extruder);     // Move to previous active extruder
     disableStepper();
     led_blink(2);
@@ -71,7 +63,7 @@ void setup()
 
 //! @brief Select filament menu
 //!
-//! Select filament by pushing left and right button, park position can be also selected.
+//! Select filament by pushing left and right button.
 //!
 //! button | action
 //! ------ | ------
@@ -79,46 +71,35 @@ void setup()
 //! right  | select next filament
 //!
 //! LED indication of states
+//! Slot0   | Slot1   | Slot2   | Slot3   | Slot4   | meaning
+//! ------- | ------- | ------- | ------- | ------- | -----------------------
+//! green   | off     | off     | off     | off     | Slot0 selected
+//! off     | green   | off     | off     | off     | Slot1 selected
+//! off     | off     | green   | off     | off     | Slot2 selected
+//! off     | off     | off     | green   | off     | Slot3 selected
+//! off     | off     | off     | off     | green   | Slot4 selected
 //!
-//! RG | RG | RG | RG | RG | meaning
-//! -- | -- | -- | -- | -- | ------------------------
-//! 01 | 00 | 00 | 00 | 00 | filament 1
-//! 00 | 01 | 00 | 00 | 00 | filament 2
-//! 00 | 00 | 01 | 00 | 00 | filament 3
-//! 00 | 00 | 00 | 01 | 00 | filament 4
-//! 00 | 00 | 00 | 00 | 01 | filament 5
-//! 00 | 00 | 00 | 00 | bb | park position
-//!
-//! @n R - Red LED
-//! @n G - Green LED
-//! @n 1 - active
-//! @n 0 - inactive
-//! @n b - blinking
 void manual_extruder_selector()
 {
-    if (isIdlerParked) 
-    {
-        set_led(numSlots - 1, COLOR_BLUE);
-        _delay_ms(100);
-        clr_leds();
-    }
-    else
-    {
-        set_led(active_extruder, COLOR_GREEN);
-        _delay_ms(100);
-    }
-    _delay_ms(200);
+    set_led(active_extruder, COLOR_GREEN);
+    _delay_ms(300);
 
     if (!isFilamentLoaded()) 
     {
+        engage_filament_pulley(true);
         switch (buttonClicked()) 
         {
         case BTN_RIGHT:
             if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
             break;
         case BTN_LEFT:
-            if (isIdlerParked) set_positions(numSlots - 1);     // unpark idler
-            else if (active_extruder > 0) set_positions(active_extruder - 1, true);
+            if (active_extruder > 0) set_positions(active_extruder - 1, true);
+            break;
+        case (BTN_MIDDLE | BTN_MODIFIER_LONG_PRESS):
+            setupMenu();
+            break;
+        case BTN_MIDDLE:
+            feed_filament();
             break;
         default:
             break;
@@ -130,7 +111,6 @@ void manual_extruder_selector()
     }
 }
 
-int i=0;
 //! @brief main loop
 //!
 //! It is possible to manually select filament and feed it when not printing.
@@ -147,17 +127,6 @@ void loop()
     if (!isPrinting && !isEjected) 
     {
         manual_extruder_selector();
-        if (BTN_MIDDLE == buttonClicked()) 
-        {
-            if (!isIdlerParked)
-            {
-                feed_filament();
-            }
-            else 
-            {
-                setupMenu();
-            }
-        }
     } 
     else if (isEjected) 
     {
@@ -308,7 +277,8 @@ void process_commands(void)
 //****************************************************************************************************
 void fixTheProblem(bool showPrevious) 
 {
-    bool previouslyEngaged = !isIdlerParked;
+    bool previouslyEngaged = isIdlerEngaged;
+
     engage_filament_pulley(false);                    // park the idler stepper motor
 
     inErrorState = true;
@@ -406,6 +376,7 @@ void fixTheProblem(bool showPrevious)
     startWakeTime = millis();
     set_positions(active_extruder);     // Return to previous active extruder
     FilamentLoaded::set(active_extruder);
+
     engage_filament_pulley(previouslyEngaged);
 }
 
@@ -426,5 +397,5 @@ void fixIdlCrash(void)
         else set_led(active_extruder, COLOR_GREEN);
     }
     inErrorState = false;
-    set_idler_toLast_positions(active_extruder);
+    setIDL2pos(active_extruder);
 }

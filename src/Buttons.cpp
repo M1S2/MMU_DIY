@@ -4,11 +4,14 @@
 #include "config.h"
 //#include "uart.h"
 
+int cnt_btn_long_press = 0;
+uint8_t last_button = BTN_NONE;
+
 //! @brief Is button pushed?
 //! we use an analog input with different DC-levels for each button
 //!
 //! @return button pushed
-uint8_t buttonClicked()
+uint8_t buttonState()
 {
     uint8_t trys = 2;
     uint8_t button = BTN_NONE;
@@ -42,4 +45,32 @@ uint8_t buttonClicked()
         _delay_ms(10);      // debouce then re-read
     } while ((trys > 0) && !button);
     return button;
+}
+
+
+uint8_t buttonClicked()
+{
+    uint8_t button = buttonState();
+
+    // As long as the button is pressed, do nothing but counting up a variable
+    // When the button is released, check how far the variable could count up (long press or not)
+    if(BTN_NONE != button)
+    {
+        cnt_btn_long_press++;
+        last_button = button;
+    }
+    else
+    {
+        if(cnt_btn_long_press > 6)          // This was a long press
+        {
+            cnt_btn_long_press = 0;
+            return last_button | BTN_MODIFIER_LONG_PRESS;
+        }
+        else if(cnt_btn_long_press > 0)     // This was a normal press
+        {
+            cnt_btn_long_press = 0;
+            return last_button;
+        }
+    }
+    return BTN_NONE;
 }
