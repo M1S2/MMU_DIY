@@ -27,7 +27,7 @@ bool feed_filament(void)
     if (!isFilamentLoaded()) 
     {
         int _c = 0;
-        set_led(active_extruder, COLOR_BLUE);
+        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
         engage_filament_pulley(true);
         while (!_loaded) 
         {
@@ -38,7 +38,7 @@ bool feed_filament(void)
                 moveSmooth(AX_PUL, -500, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC, true);
                 _delay_ms(10);
                 moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
-                set_led(active_extruder, COLOR_GREEN);
+                set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
                 _loaded = true;
                 break;
             } 
@@ -49,6 +49,7 @@ bool feed_filament(void)
                     _delay_ms(10);
                     moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC);
                     fixTheProblem();
+                    set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
                     engage_filament_pulley(true);
                 } 
                 else 
@@ -76,7 +77,7 @@ void toolChange(int new_extruder)
 {
     isPrinting = true;
 
-    set_led(active_extruder, COLOR_BLUE);
+    set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
 
     previous_extruder = active_extruder;
 
@@ -86,8 +87,8 @@ void toolChange(int new_extruder)
         {
             startWakeTime = millis();
             set_positions(new_extruder);
+            set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
             
-            set_led(active_extruder, COLOR_BLUE);
             load_filament_withSensor();
         }
     } 
@@ -98,11 +99,11 @@ void toolChange(int new_extruder)
             unload_filament_withSensor(previous_extruder);
         }
         set_positions(new_extruder, true);
-        set_led(active_extruder, COLOR_BLUE);
+        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
         _delay_ms(500);
         load_filament_withSensor();
     }
-    set_led(active_extruder, COLOR_GREEN);
+    set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
 }
 
 /**
@@ -168,13 +169,14 @@ void load_filament_withSensor(uint16_t setupBowLen)
                 IR_SENSOR   = false;
                 if (moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FSENSOR_SENSE_STEPS][filament_type[active_extruder]], 200, GLOBAL_ACC, false, true) == MR_Success) 
                 {
-                    set_led(active_extruder, COLOR_GREEN);
+                    set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
                     _retry = false;
                 }
                 else
                 {
                     // Loading failed @ IR_SENSOR
                     fixTheProblem();
+                    set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
                 }
             }
         }
@@ -189,6 +191,7 @@ void load_filament_withSensor(uint16_t setupBowLen)
             {
                 // Loading failed @ FINDA
                 fixTheProblem();
+                set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
             }
         }
     } while (_retry);
@@ -232,6 +235,7 @@ void unload_filament_withSensor(uint8_t extruder)
             {
                 fixTheProblem();
             }
+            set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
         }
     }
     else
@@ -245,6 +249,7 @@ void unload_filament_withSensor(uint8_t extruder)
         {
             fixTheProblem();
         }
+        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
     }
     disableStepper();
 }
@@ -284,6 +289,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
             {
                 fixTheProblem();
             }
+            set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
         }
     }
     
@@ -303,7 +309,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
  */
 void load_filament_into_extruder()
 {
-    set_led(active_extruder, COLOR_BLUE);
+    set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
     engage_filament_pulley(true); // get in contact with filament
 
     move_pulley(150, filament_lookup_table[IDX_FIL_TABLE_L2EXSTAGEONE][filament_type[active_extruder]]);
@@ -311,7 +317,7 @@ void load_filament_into_extruder()
     move_pulley(820, filament_lookup_table[IDX_FIL_TABLE_L2EXSTAGETWO][filament_type[active_extruder]]);
     disableStepper();
     engage_filament_pulley(false); // release contact with filament
-    set_led(active_extruder, COLOR_GREEN);
+    set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
 }
 
 /**

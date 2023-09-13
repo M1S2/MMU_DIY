@@ -33,15 +33,7 @@ void settings_bowden_length();
 //!
 void setupMenu()
 {
-    clr_leds();
-    _delay_ms(200);
-    clr_leds();
-    for (int i = 0; i < numSlots; i++)
-    {
-        set_led(i, COLOR_WHITE, false);
-    }
-    _delay_ms(1200);
-    clr_leds();
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1200);
 
     uint8_t _menu = 0;
     bool _exit = false;
@@ -99,16 +91,8 @@ void setupMenu()
         }
     } while (!_exit);
 
-    clr_leds();
-    _delay_ms(400);
-    clr_leds();
-    for (int i = 0; i < numSlots; i++)
-    {
-        set_led(i, COLOR_WHITE, false);
-    }
-    _delay_ms(400);
-    clr_leds();
-    set_led(active_extruder, COLOR_GREEN);
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 400);
+    set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
 }
 
 //! @brief Set bowden length

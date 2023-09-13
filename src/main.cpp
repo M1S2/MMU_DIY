@@ -81,8 +81,7 @@ void setup()
 //!
 void manual_extruder_selector()
 {
-    set_led(active_extruder, COLOR_GREEN);
-    _delay_ms(300);
+    set_led_state(active_extruder, LED_SLOT_SELECTED, 300);
 
     if (!isFilamentLoaded()) 
     {
@@ -197,11 +196,11 @@ void process_commands(void)
     } 
     else if ((tData1 == 'U') && (tData2 == '0')) 
     {
-        set_led(active_extruder, COLOR_BLUE);
+        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
         engage_filament_pulley(false);
-        set_led(active_extruder, COLOR_GREEN);
+        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
         sendStringToPrinter(OK);
         isPrinting = false;
     } 
@@ -313,16 +312,13 @@ void fixTheProblem(bool showPrevious)
                 default:
                     break;
             }
-            _delay_ms(100);
-            clr_leds();
-            _delay_ms(100);
             if (isFilamentLoaded()) 
             {
-                set_led(active_extruder, COLOR_RED);
+                set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT, 200);
             } 
             else 
             {
-                set_led(active_extruder, COLOR_GREEN);
+                set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT, 200);
             }
         } 
         else 
@@ -356,7 +352,7 @@ void fixTheProblem(bool showPrevious)
             clr_leds();
             if (active_extruder != previous_extruder) 
             {
-                set_led(active_extruder, COLOR_GREEN);
+                set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
             }
             _delay_ms(100);
             if (isFilamentLoaded()) 
@@ -387,14 +383,14 @@ void fixIdlCrash(void)
     while (BTN_MIDDLE != buttonClicked()) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
-        _delay_ms(100);
-        clr_leds();
-        _delay_ms(100);
         if (isFilamentLoaded()) 
         {
-            set_led(active_extruder, COLOR_RED);
+            set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT, 200);
         } 
-        else set_led(active_extruder, COLOR_GREEN);
+        else
+        {
+            set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT, 200);
+        }
     }
     inErrorState = false;
     setIDL2pos(active_extruder);

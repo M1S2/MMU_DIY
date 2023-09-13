@@ -19,8 +19,26 @@ const cRGB COLOR_BLACK =  { /*g*/0,   /*r*/0,   /*b*/0};
 
 extern WS2812 LEDS;
 
+typedef enum 
+{ 
+  // depending on the slot number:
+  LED_SLOT_SELECTED,
+  LED_SLOT_OPERATION_ACTIVE,
+  LED_SLOT_ERROR_FILAMENT_PRESENT,
+  LED_SLOT_ERROR_NO_FILAMENT,
+  LED_SLOT_SETUP_MENU_ANGLE,
+  LED_SLOT_SETUP_MENU_BOWDEN_LEN,
+  LED_SLOT_SETUP_ANGLE,
+  LED_SLOT_SETUP_BOWDEN_LEN,
+  // independent of the slot number:
+  LED_ENTER_SLOT_SETUP_MENU,
+  LED_DELETE_EEPROM_MENU,
+  LED_DELETE_EEPROM_FINISHED
+} led_states_t;
+
 void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet = true);
 void clr_leds(void);
 void led_blink(int slotNumber);
+void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_ms = 300);
 
 #endif //_LED_H
