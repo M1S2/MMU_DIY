@@ -10,6 +10,111 @@
 #include "uart.h"
 #include "config.h"
 
+void slotSetupMenuAngle();
+void slotSetupMenuBowdenLen();
+
+//! button          | action
+//! --------------- | ----------------------------------
+//! LEFT            | Select previous menu option (if not at first option)
+//! RIGHT           | Select next menu option (if not at last option)
+//! MIDDLE          | Enter menu for slot setup option
+//! MIDDLE (long)   | Exit slot setup menu and return to base menu
+void slotSetupMenu()
+{
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1000);
+    uint8_t _menu = 0;
+    bool _exit = false;
+    do 
+    {
+        switch (_menu) 
+        {
+            case 0: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_ANGLE, 1000); break;
+            case 1: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_BOWDEN_LEN, 1000); break;
+        }
+
+        if(get_key_press(1 << KEY_LEFT) || get_key_rpt(1 << KEY_LEFT))
+        {
+            if (_menu > 0) { _menu--; }
+        }
+        else if(get_key_press(1 << KEY_RIGHT) || get_key_rpt(1 << KEY_RIGHT))
+        {
+            if (_menu < 1) { _menu++; }
+        }
+        else if (get_key_long(1 << KEY_MIDDLE))
+        {
+            _exit = true;
+        }
+        else if (get_key_press(1 << KEY_MIDDLE))
+        {
+            switch (_menu) 
+            {
+            case 0: slotSetupMenuAngle(); break;
+            case 1: slotSetupMenuBowdenLen(); break;
+            }
+        }
+    } while (!_exit);
+
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1000);
+}
+
+//! button          | action
+//! --------------- | ----------------------------------
+//! LEFT            | Rotate Idler one step back
+//! RIGHT           | Rotate Idler one step forward
+//! MIDDLE          | Exit slot setup option angle menu and return to slot setup menu
+void slotSetupMenuAngle()
+{
+    bool _exit = false;
+    do 
+    {
+        set_led_state(active_extruder, LED_SLOT_SETUP_ANGLE, 0);
+
+        if(get_key_press(1 << KEY_LEFT) || get_key_rpt(1 << KEY_LEFT))
+        {
+            // decrease slot idler angle
+            sendStringToPrinter((char*)"slot angle decrease");
+            #warning Add functionality here
+        }
+        else if(get_key_press(1 << KEY_RIGHT) || get_key_rpt(1 << KEY_RIGHT))
+        {
+            // increase slot idler angle
+            sendStringToPrinter((char*)"slot angle increase");
+            #warning Add functionality here
+        }
+        else if (get_key_long(1 << KEY_MIDDLE) || get_key_press(1 << KEY_MIDDLE))
+        {
+            _exit = true;
+        }
+    } while (!_exit);
+}
+
+//! button          | action
+//! --------------- | ----------------------------------
+//! LEFT            | Decrease the bowden length by one step
+//! RIGHT           | Increase the bowden length by one step
+//! MIDDLE          | Exit slot setup option bowden length menu and return to slot setup menu
+void slotSetupMenuBowdenLen()
+{
+    bool _exit = false;
+    do 
+    {
+        set_led_state(active_extruder, LED_SLOT_SETUP_BOWDEN_LEN, 0);
+
+        sendStringToPrinter((char*)"slot bowden len menu");
+        #warning Add functionality here
+
+        if (get_key_long(1 << KEY_MIDDLE) || get_key_press(1 << KEY_MIDDLE))
+        {
+            _exit = true;
+        }
+    } while (!_exit);
+}
+
+
+
+
+#if false
+
 void settings_bowden_length();
 
 //! @brief Show setup menu
@@ -198,3 +303,5 @@ void settings_bowden_length()
         }
     } while (state != S::Done);
 }
+
+#endif

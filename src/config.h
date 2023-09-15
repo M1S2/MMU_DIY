@@ -25,10 +25,16 @@
 #define PIN_LED_DIN     22
 #define PIN_IDL_SERVO   24
 #define PIN_LED_DEBUG   26
+#define PIN_BTN_LEFT    28
+#define PIN_BTN_MIDDLE  30
+#define PIN_BTN_RIGHT   32
 #else
 #define PIN_LED_DIN     PIN_PD7
 #define PIN_IDL_SERVO   PIN_PC4
 #define PIN_LED_DEBUG   PIN_PD2 
+#define PIN_BTN_LEFT    PIN_PD3
+#define PIN_BTN_MIDDLE  PIN_PD4
+#define PIN_BTN_RIGHT   PIN_PD5
 #endif
 
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5

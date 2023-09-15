@@ -6,6 +6,6 @@
 #include <stdint.h>
 #include "Arduino.h"
 
-void setupMenu();
+void slotSetupMenu();
 
 #endif //_SETUPMENU_h

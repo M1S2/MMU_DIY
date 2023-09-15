@@ -16,11 +16,20 @@ void process_commands(void);
 //! ------- | ------- | ------- | ------- | ------- | -----------------------
 //! on/off  | on/off  | on/off  | on/off  | on/off  | Show the number of slots (number of on LEDs)
 //! blink   | 0       | 0       | 0       | 0       | EEPROM initialized
-//! 0       | blink   |  0      | 0       | 0       | UART initialized
+//! 0       | blink   | 0       | 0       | 0       | UART initialized
 //! 0       | 0       | blink   | 0       | 0       | Idler/Stepper initialized
 //!
 void setup()
 {
+    // Setup all button pins to be inputs and enable the pullups, enable the button timer
+    pinMode(PIN_BTN_LEFT, INPUT);
+    pinMode(PIN_BTN_MIDDLE, INPUT);
+    pinMode(PIN_BTN_RIGHT, INPUT);
+    pullup(PIN_BTN_LEFT);
+    pullup(PIN_BTN_MIDDLE);
+    pullup(PIN_BTN_RIGHT);
+    initButtonTimer();
+
     pinMode(PIN_LED_DEBUG, OUTPUT);
     digitalWrite(PIN_LED_DEBUG, HIGH);
 
@@ -61,52 +70,72 @@ void setup()
     digitalWrite(PIN_LED_DEBUG, LOW);
 }
 
-//! @brief Select filament menu
-//!
-//! Select filament by pushing left and right button.
-//!
-//! button | action
-//! ------ | ------
-//! left   | select previous filament
-//! right  | select next filament
-//!
-//! LED indication of states
-//! Slot0   | Slot1   | Slot2   | Slot3   | Slot4   | meaning
-//! ------- | ------- | ------- | ------- | ------- | -----------------------
-//! green   | off     | off     | off     | off     | Slot0 selected
-//! off     | green   | off     | off     | off     | Slot1 selected
-//! off     | off     | green   | off     | off     | Slot2 selected
-//! off     | off     | off     | green   | off     | Slot3 selected
-//! off     | off     | off     | off     | green   | Slot4 selected
-//!
-void manual_extruder_selector()
+//! button          | action
+//! --------------- | ----------------------------------
+//! LEFT            | return to base menu
+//! RIGHT           | return to base menu
+//! MIDDLE          | return to base menu
+//! MIDDLE (long)   | delete EEPROM and return to base menu
+//! Timeout         | return to base menu
+void eepromDeleteMenu()
 {
-    set_led_state(active_extruder, LED_SLOT_SELECTED, 300);
+    bool _exit = false;
+    do 
+    {
+        set_led_state(0, LED_DELETE_EEPROM_MENU, 300);
 
-    if (!isFilamentLoaded()) 
-    {
-        engage_filament_pulley(true);
-        switch (buttonClicked()) 
+        if(get_key_short(1 << KEY_LEFT) || get_key_long(1 << KEY_LEFT) || get_key_short(1 << KEY_RIGHT) || get_key_long(1 << KEY_RIGHT) || get_key_short(1 << KEY_MIDDLE))
         {
-        case BTN_RIGHT:
-            if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
-            break;
-        case BTN_LEFT:
-            if (active_extruder > 0) set_positions(active_extruder - 1, true);
-            break;
-        case (BTN_MIDDLE | BTN_MODIFIER_LONG_PRESS):
-            setupMenu();
-            break;
-        case BTN_MIDDLE:
-            feed_filament();
-            break;
-        default:
-            break;
+            _exit = true;
         }
-    } 
-    else 
+        else if (get_key_long(1 << KEY_MIDDLE))
+        {
+            // Delete EEPROM
+            #warning Implement EEPROM delete function
+            set_led_state(0, LED_DELETE_EEPROM_FINISHED, 1500);
+            _exit = true;
+        }
+
+#warning Implement exit from EEPROM delete menu after Timeout
+
+    } while (!_exit);
+}
+
+//! button          | action
+//! --------------- | ----------------------------------
+//! LEFT            | Move to previous slot (if not at first slot)
+//! RIGHT           | Move to next slot (if not at last slot)
+//! MIDDLE          | Feed filament
+//! MIDDLE (long)   | Enter slot setup menu for the last selected slot
+//! RIGHT & LEFT    | Enter EEPROM deletion menu
+void baseMenu()
+{
+    uint8_t keyStateShortRight = get_key_short(1 << KEY_RIGHT);
+    uint8_t keyStateShortLeft = get_key_short(1 << KEY_LEFT);
+
+    if(keyStateShortLeft && keyStateShortRight)
     {
-        /* no manual extruder selection supported when filament is loaded */
+        eepromDeleteMenu();
+        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+    }
+    else if(keyStateShortLeft || get_key_rpt(1 << KEY_LEFT))
+    {
+        // move to previous slot
+        if (active_extruder > 0) set_positions(active_extruder - 1, true);
+    }
+    else if(keyStateShortRight || get_key_rpt(1 << KEY_RIGHT))
+    {
+        // move to next slot
+        if (active_extruder < numSlots) set_positions(active_extruder + 1, true);
+    }
+    else if(get_key_long(1 << KEY_MIDDLE))
+    {
+        slotSetupMenu();
+        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+    }
+    else if(get_key_short(1 << KEY_MIDDLE))
+    {
+        feed_filament();
     }
 }
 
@@ -125,19 +154,25 @@ void loop()
 
     if (!isPrinting && !isEjected) 
     {
-        manual_extruder_selector();
+        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+
+        if (!isFilamentLoaded()) 
+        {
+            engage_filament_pulley(true);
+            baseMenu();
+        } 
+        else 
+        {
+            /* no manual extruder selection supported when filament is loaded */
+        }
     } 
     else if (isEjected) 
     {
-        switch (buttonClicked()) 
+        if(get_key_short(1 << KEY_RIGHT))
         {
-        case BTN_RIGHT:
             engage_filament_pulley(true);
             moveSmooth(AX_PUL, (PULLEY_EJECT_STEPS * -1), filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]], GLOBAL_ACC);
             engage_filament_pulley(false);
-            break;
-        default:
-            break;
         }
     }
 
@@ -282,36 +317,34 @@ void fixTheProblem(bool showPrevious)
 
     inErrorState = true;
 
-    while ((BTN_MIDDLE != buttonClicked()) || isFilamentLoaded()) 
+    while (!get_key_short(1 << KEY_MIDDLE) || isFilamentLoaded()) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         if (!showPrevious) 
         {
-            switch (buttonClicked()) 
+            if(get_key_short(1 << KEY_RIGHT))
             {
-                case BTN_RIGHT:
-                    engage_filament_pulley(true);
-                    if (isFilamentLoaded()) 
+                engage_filament_pulley(true);
+                if (isFilamentLoaded()) 
+                {
+                    if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
                     {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
-                        {
-                            moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC); // move to filament parking position
-                        }
-                    } 
-                    else 
-                    {
-                        moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]]);
+                        moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[active_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]], GLOBAL_ACC); // move to filament parking position
                     }
-                    engage_filament_pulley(false);                 
-                    break;
-                case BTN_LEFT:
-                    engage_filament_pulley(true);
-                    moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
-                    engage_filament_pulley(false);                   
-                    break;
-                default:
-                    break;
+                } 
+                else 
+                {
+                    moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[active_extruder]]);
+                }
+                engage_filament_pulley(false);  
             }
+            else if(get_key_short(1 << KEY_LEFT))
+            {
+                engage_filament_pulley(true);
+                moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
+                engage_filament_pulley(false);     
+            }
+
             if (isFilamentLoaded()) 
             {
                 set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT, 200);
@@ -323,30 +356,27 @@ void fixTheProblem(bool showPrevious)
         } 
         else 
         {
-            switch (buttonClicked()) 
+            if(get_key_short(1 << KEY_RIGHT))
             {
-                case BTN_RIGHT:
-                    engage_filament_pulley(true);
-                    if (isFilamentLoaded()) 
+                engage_filament_pulley(true);
+                if (isFilamentLoaded()) 
+                {
+                    if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
                     {
-                        if (moveSmooth(AX_PUL, ((BOWDEN_LENGTH * 1.5) * -1), filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8, GLOBAL_ACC, true) == MR_Success)  // move to trigger FINDA
-                        {
-                            moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[previous_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8, GLOBAL_ACC); // move to filament parking position
-                        }
-                    } 
-                    else 
-                    {
-                        moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
+                        moveSmooth(AX_PUL, filament_lookup_table[IDX_FIL_TABLE_FILAMENT_PARKING_STEPS][filament_type[previous_extruder]], filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8, GLOBAL_ACC); // move to filament parking position
                     }
-                    engage_filament_pulley(false);
-                    break;
-                case BTN_LEFT:
-                    engage_filament_pulley(true);
-                    moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
-                    engage_filament_pulley(false);
-                    break;
-                default:
-                    break;
+                } 
+                else 
+                {
+                    moveSmooth(AX_PUL, -300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
+                }
+                engage_filament_pulley(false);
+            }
+            else if(get_key_short(1 << KEY_LEFT))
+            {
+                engage_filament_pulley(true);
+                moveSmooth(AX_PUL, 300, filament_lookup_table[IDX_FIL_TABLE_FEED_SPEED_PUL][filament_type[previous_extruder]]*1.8);
+                engage_filament_pulley(false);
             }
             _delay_ms(100);
             clr_leds();
@@ -380,7 +410,7 @@ void fixIdlCrash(void)
 {
     inErrorState = true;
 
-    while (BTN_MIDDLE != buttonClicked()) 
+    while (!get_key_short(1 << KEY_MIDDLE)) 
     {
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         if (isFilamentLoaded()) 

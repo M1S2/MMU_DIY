@@ -2,75 +2,116 @@
 
 #include "Buttons.h"
 #include "config.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
 //#include "uart.h"
 
-int cnt_btn_long_press = 0;
-uint8_t last_button = BTN_NONE;
-
-//! @brief Is button pushed?
-//! we use an analog input with different DC-levels for each button
-//!
-//! @return button pushed
-uint8_t buttonState()
+// Init the 8-bit Timer0 used for button handling
+void initButtonTimer()
 {
-    uint8_t trys = 2;
-    uint8_t button = BTN_NONE;
-    do
-    {    
-        uint16_t btn_adc_val = 0;
-        for (int i=0; i < 4; i++) btn_adc_val += analogRead(PIN_BUTTONS);
-        btn_adc_val = btn_adc_val / 4;
-
-        if (btn_adc_val > (BTN_LEFT_ADC_VALUE - BTN_VALID_ADC_DIFF) && btn_adc_val < (BTN_LEFT_ADC_VALUE + BTN_VALID_ADC_DIFF))
-        {
-            button = BTN_LEFT;
-        }
-        else if (btn_adc_val > (BTN_MIDDLE_ADC_VALUE - BTN_VALID_ADC_DIFF) && btn_adc_val < (BTN_MIDDLE_ADC_VALUE + BTN_VALID_ADC_DIFF))
-        {
-            button = BTN_MIDDLE;
-        }
-        else if (btn_adc_val < (BTN_RIGHT_ADC_VALUE + BTN_VALID_ADC_DIFF))
-        {
-            button = BTN_RIGHT;
-        }
-
-#if false
-        // Test Code to show the btn_adc_val on the Monitor to set the correct values in the config.h
-        char tmp[50];
-        sprintf(tmp, "btn_adc_val=%d", btn_adc_val);
-        sendStringToPrinter(tmp);
-#endif
-
-        trys--;
-        _delay_ms(10);      // debouce then re-read
-    } while ((trys > 0) && !button);
-    return button;
+    TCCR0 = (1 << CS02) | (1 << CS00) | (1 << WGM01);       // Set Prescaler to 1024, this implicitly enables the timer; set the timer to CTC mode (clear on compare match)
+    OCR0 = (uint8_t)((F_CPU / (float)1024) * 10e-3 + 0.5);  // Set output compare register to trigger after 10 ms
+    TIMSK |= (1 << OCIE0);                                  // Enable compare match interrupt
 }
 
-
-uint8_t buttonClicked()
+/************************************************************************/
+/* ISR for the Timer0 Compare match							            */
+/* This timer is used for button handling						        */
+/************************************************************************/
+ISR(TIMER0_COMP_vect)
 {
-    uint8_t button = buttonState();
+	debounce_timer_interrupt();
+}
 
-    // As long as the button is pressed, do nothing but counting up a variable
-    // When the button is released, check how far the variable could count up (long press or not)
-    if(BTN_NONE != button)
-    {
-        cnt_btn_long_press++;
-        last_button = button;
-    }
-    else
-    {
-        if(cnt_btn_long_press > 6)          // This was a long press
-        {
-            cnt_btn_long_press = 0;
-            return last_button | BTN_MODIFIER_LONG_PRESS;
-        }
-        else if(cnt_btn_long_press > 0)     // This was a normal press
-        {
-            cnt_btn_long_press = 0;
-            return last_button;
-        }
-    }
-    return BTN_NONE;
+/************************************************************************/
+/*                                                                      */
+/*                      Debouncing 8 Keys                               */
+/*                      Sampling 4 Times                                */
+/*                      With Repeat Function                            */
+/*                                                                      */
+/*              Author: Peter Dannegger                                 */
+/*                      danni@specs.de                                  */
+/*                                                                      */
+/*			http://www.mikrocontroller.net/articles/Entprellung			*/
+/************************************************************************/
+
+volatile uint8_t key_state;                                // debounced and inverted key state:
+// bit = 1: key pressed
+volatile uint8_t key_press;                                // key press detect
+volatile uint8_t key_rpt;                                  // key long press and repeat
+
+void debounce_timer_interrupt()						//every 10 ms
+{
+	static uint8_t ct0 = 0xFF, ct1 = 0xFF, rpt;
+	uint8_t i;
+	
+	i = key_state ^ ~KEY_PIN;                       // key changed ?
+	ct0 = ~( ct0 & i );                             // reset or count ct0
+	ct1 = ct0 ^ (ct1 & i);                          // reset or count ct1
+	i &= ct0 & ct1;                                 // count until roll over ?
+	key_state ^= i;                                 // then toggle debounced state
+	key_press |= key_state & i;                     // 0->1: key press detect
+	
+	if( (key_state & REPEAT_MASK) == 0 )            // check repeat function
+	rpt = REPEAT_START;                          // start delay
+	if( --rpt == 0 ){
+		rpt = REPEAT_NEXT;                            // repeat delay
+		key_rpt |= key_state & REPEAT_MASK;
+	}
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// check if a key has been pressed. Each pressed key is reported
+// only once
+//
+uint8_t get_key_press( uint8_t key_mask )
+{
+	cli();                                          // read and clear atomic !
+	key_mask &= key_press;                          // read key(s)
+	key_press ^= key_mask;                          // clear key(s)
+	sei();
+	return key_mask;
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// check if a key has been pressed long enough such that the
+// key repeat functionality kicks in. After a small setup delay
+// the key is reported being pressed in subsequent calls
+// to this function. This simulates the user repeatedly
+// pressing and releasing the key.
+//
+uint8_t get_key_rpt( uint8_t key_mask )
+{
+	cli();                                          // read and clear atomic !
+	key_mask &= key_rpt;                            // read key(s)
+	key_rpt ^= key_mask;                            // clear key(s)
+	sei();
+	return key_mask;
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// check if a key is pressed right now
+//
+uint8_t get_key_state( uint8_t key_mask )
+{
+	key_mask &= key_state;
+	return key_mask;
+}
+
+///////////////////////////////////////////////////////////////////
+//
+uint8_t get_key_short( uint8_t key_mask )
+{
+	cli();                                          // read key state and key press atomic !
+	return get_key_press( ~key_state & key_mask );
+}
+
+///////////////////////////////////////////////////////////////////
+//
+uint8_t get_key_long( uint8_t key_mask )
+{
+	return get_key_press( get_key_rpt( key_mask ));
 }
