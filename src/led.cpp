@@ -44,35 +44,33 @@ void led_blink(int slotNumber)
     _delay_ms(50);
 }
 
-void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_ms)
+void set_led_state(int slotNumber, led_states_t state)
 {
     switch(state)
     {
     case LED_SLOT_SELECTED:
         set_led(slotNumber, COLOR_GREEN);
-        _delay_ms(timeForLedOperation_ms);
         break;
     case LED_SLOT_OPERATION_ACTIVE:
         set_led(slotNumber, COLOR_BLUE);
-        _delay_ms(timeForLedOperation_ms);
         break;
     case LED_SLOT_ERROR_FILAMENT_PRESENT:
         set_led(slotNumber, COLOR_RED);
-        _delay_ms(timeForLedOperation_ms / 2);
+        _delay_ms(100);
         clr_leds();
-        _delay_ms(timeForLedOperation_ms / 2);
+        _delay_ms(100);
         break;
     case LED_SLOT_ERROR_NO_FILAMENT:
         set_led(slotNumber, COLOR_GREEN);
-        _delay_ms(timeForLedOperation_ms / 2);
+        _delay_ms(100);
         clr_leds();
-        _delay_ms(timeForLedOperation_ms / 2);
+        _delay_ms(100);
         break;
     case LED_SLOT_SETUP_MENU_ANGLE:
         set_led(slotNumber, COLOR_WHITE);
         _delay_ms(100);
         clr_leds();
-        if(timeForLedOperation_ms - 50 > 0) { _delay_ms(timeForLedOperation_ms - 100); }
+        _delay_ms(900);
         break;
     case LED_SLOT_SETUP_MENU_BOWDEN_LEN:
         set_led(slotNumber, COLOR_WHITE);
@@ -82,15 +80,13 @@ void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_m
         set_led(slotNumber, COLOR_WHITE);
         _delay_ms(100);
         clr_leds();
-        if(timeForLedOperation_ms - 3 * 50 > 0) { _delay_ms(timeForLedOperation_ms - 100 - 75 - 100); }
+        _delay_ms(725);
         break;
     case LED_SLOT_SETUP_ANGLE:
         set_led(slotNumber, COLOR_WHITE);
-        _delay_ms(timeForLedOperation_ms);
         break;
     case LED_SLOT_SETUP_BOWDEN_LEN:
         set_led(slotNumber, COLOR_WHITE);
-        _delay_ms(timeForLedOperation_ms);
         break;
     case LED_ENTER_SLOT_SETUP_MENU:
         clr_leds();
@@ -98,7 +94,7 @@ void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_m
         {
             set_led(i, COLOR_WHITE, false);
         }
-        _delay_ms(timeForLedOperation_ms);
+        _delay_ms(1000);
         clr_leds();
         break;
     case LED_DELETE_EEPROM_MENU:
@@ -109,7 +105,7 @@ void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_m
         }
         _delay_ms(100);
         clr_leds();
-        if(timeForLedOperation_ms - 100 > 0) { _delay_ms(timeForLedOperation_ms - 100); }
+        _delay_ms(200);
         break;
     case LED_DELETE_EEPROM_FINISHED:
         clr_leds();
@@ -117,7 +113,7 @@ void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_m
         {
             set_led(i, COLOR_RED, false);
         }
-        _delay_ms(timeForLedOperation_ms);
+        _delay_ms(1500);
         break;
     }
 }

@@ -85,7 +85,7 @@ static bool validBowdenLen (const uint16_t BowdenLength)
 //! @return stored bowden length
 uint16_t BowdenLength::get()
 {
-    uint8_t filament = 0;
+    uint8_t filament = active_extruder;
     if (validFilament(filament))
     {
         uint16_t bowdenLength = eeprom_read_word(&(eepromBase->eepromBowdenLen[filament]));
@@ -111,7 +111,7 @@ uint16_t BowdenLength::get()
 //!
 //! To be created on stack, new value is permanently stored when object goes out of scope.
 //! Active filament and associated bowden length is stored in member variables.
-BowdenLength::BowdenLength() : m_filament(0), m_length(BowdenLength::get())
+BowdenLength::BowdenLength() : m_filament(0), m_length(BowdenLength::get()), stepSize(BOWDEN_LENGTH_NORMAL_STEPS)
 {
 }
 

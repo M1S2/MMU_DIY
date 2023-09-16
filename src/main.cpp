@@ -82,7 +82,7 @@ void eepromDeleteMenu()
     bool _exit = false;
     do 
     {
-        set_led_state(0, LED_DELETE_EEPROM_MENU, 300);
+        set_led_state(0, LED_DELETE_EEPROM_MENU);
 
         if(get_key_short(1 << KEY_LEFT) || get_key_long(1 << KEY_LEFT) || get_key_short(1 << KEY_RIGHT) || get_key_long(1 << KEY_RIGHT) || get_key_short(1 << KEY_MIDDLE))
         {
@@ -92,7 +92,7 @@ void eepromDeleteMenu()
         {
             // Delete EEPROM
             #warning Implement EEPROM delete function
-            set_led_state(0, LED_DELETE_EEPROM_FINISHED, 1500);
+            set_led_state(0, LED_DELETE_EEPROM_FINISHED);
             _exit = true;
         }
 
@@ -116,7 +116,7 @@ void baseMenu()
     if(keyStateShortLeft && keyStateShortRight)
     {
         eepromDeleteMenu();
-        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+        set_led_state(active_extruder, LED_SLOT_SELECTED);
     }
     else if(keyStateShortLeft || get_key_rpt(1 << KEY_LEFT))
     {
@@ -131,7 +131,7 @@ void baseMenu()
     else if(get_key_long(1 << KEY_MIDDLE))
     {
         slotSetupMenu();
-        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+        set_led_state(active_extruder, LED_SLOT_SELECTED);
     }
     else if(get_key_short(1 << KEY_MIDDLE))
     {
@@ -154,7 +154,7 @@ void loop()
 
     if (!isPrinting && !isEjected) 
     {
-        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+        set_led_state(active_extruder, LED_SLOT_SELECTED);
 
         if (!isFilamentLoaded()) 
         {
@@ -231,11 +231,11 @@ void process_commands(void)
     } 
     else if ((tData1 == 'U') && (tData2 == '0')) 
     {
-        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE, 0);
+        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE);
         // Ux Unload filament CMD Received
         unload_filament_withSensor();
         engage_filament_pulley(false);
-        set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+        set_led_state(active_extruder, LED_SLOT_SELECTED);
         sendStringToPrinter(OK);
         isPrinting = false;
     } 
@@ -347,11 +347,11 @@ void fixTheProblem(bool showPrevious)
 
             if (isFilamentLoaded()) 
             {
-                set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT, 200);
+                set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT);
             } 
             else 
             {
-                set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT, 200);
+                set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT);
             }
         } 
         else 
@@ -382,7 +382,7 @@ void fixTheProblem(bool showPrevious)
             clr_leds();
             if (active_extruder != previous_extruder) 
             {
-                set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
+                set_led_state(active_extruder, LED_SLOT_SELECTED);
             }
             _delay_ms(100);
             if (isFilamentLoaded()) 
@@ -415,11 +415,11 @@ void fixIdlCrash(void)
         //  wait until key is entered to proceed  (this is to allow for operator intervention)
         if (isFilamentLoaded()) 
         {
-            set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT, 200);
+            set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT);
         } 
         else
         {
-            set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT, 200);
+            set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT);
         }
     }
     inErrorState = false;

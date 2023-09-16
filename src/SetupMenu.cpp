@@ -21,22 +21,22 @@ void slotSetupMenuBowdenLen();
 //! MIDDLE (long)   | Exit slot setup menu and return to base menu
 void slotSetupMenu()
 {
-    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1000);
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU);
     uint8_t _menu = 0;
     bool _exit = false;
     do 
     {
         switch (_menu) 
         {
-            case 0: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_ANGLE, 1000); break;
-            case 1: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_BOWDEN_LEN, 1000); break;
+            case 0: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_ANGLE); break;
+            case 1: set_led_state(active_extruder, LED_SLOT_SETUP_MENU_BOWDEN_LEN); break;
         }
 
-        if(get_key_press(1 << KEY_LEFT) || get_key_rpt(1 << KEY_LEFT))
+        if(get_key_short(1 << KEY_LEFT) || get_key_rpt(1 << KEY_LEFT))
         {
             if (_menu > 0) { _menu--; }
         }
-        else if(get_key_press(1 << KEY_RIGHT) || get_key_rpt(1 << KEY_RIGHT))
+        else if(get_key_short(1 << KEY_RIGHT) || get_key_rpt(1 << KEY_RIGHT))
         {
             if (_menu < 1) { _menu++; }
         }
@@ -44,7 +44,7 @@ void slotSetupMenu()
         {
             _exit = true;
         }
-        else if (get_key_press(1 << KEY_MIDDLE))
+        else if (get_key_short(1 << KEY_MIDDLE))
         {
             switch (_menu) 
             {
@@ -54,32 +54,67 @@ void slotSetupMenu()
         }
     } while (!_exit);
 
-    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1000);
+    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU);
 }
 
 //! button          | action
 //! --------------- | ----------------------------------
-//! LEFT            | Rotate Idler one step back
-//! RIGHT           | Rotate Idler one step forward
+//! LEFT            | Rotate Idler one step back (or 5 degree steps on long hold)
+//! RIGHT           | Rotate Idler one step forward (or 5 degree steps on long hold)
 //! MIDDLE          | Exit slot setup option angle menu and return to slot setup menu
 void slotSetupMenuAngle()
 {
     bool _exit = false;
+    
+    set_led_state(active_extruder, LED_SLOT_SETUP_ANGLE);
+
     do 
     {
-        set_led_state(active_extruder, LED_SLOT_SETUP_ANGLE, 0);
-
-        if(get_key_press(1 << KEY_LEFT) || get_key_rpt(1 << KEY_LEFT))
+        if(get_key_rpt(1 << KEY_LEFT))
         {
-            // decrease slot idler angle
-            sendStringToPrinter((char*)"slot angle decrease");
-            #warning Add functionality here
+            // decrease slot idler angle by 5 degree
+            if(idlerSlotAngles[active_extruder] >= 5)
+            { 
+                idlerSlotAngles[active_extruder] -= 5;
+                setIDL2pos(active_extruder);
+            }
+            else
+            { 
+                idlerSlotAngles[active_extruder] = 0;
+                setIDL2pos(active_extruder);
+            }
         }
-        else if(get_key_press(1 << KEY_RIGHT) || get_key_rpt(1 << KEY_RIGHT))
+        else if(get_key_short(1 << KEY_LEFT))
         {
-            // increase slot idler angle
-            sendStringToPrinter((char*)"slot angle increase");
-            #warning Add functionality here
+            // decrease slot idler angle by 1 degree
+            if(idlerSlotAngles[active_extruder] > 0)
+            { 
+                idlerSlotAngles[active_extruder]--;
+                setIDL2pos(active_extruder);
+            }
+        }
+        else if(get_key_rpt(1 << KEY_RIGHT))
+        {
+            // increase slot idler angle by 5 degree
+            if(idlerSlotAngles[active_extruder] <= 175)
+            { 
+                idlerSlotAngles[active_extruder] += 5;
+                setIDL2pos(active_extruder);
+            }
+            else
+            { 
+                idlerSlotAngles[active_extruder] = 180;
+                setIDL2pos(active_extruder);
+            }
+        }
+        else if(get_key_short(1 << KEY_RIGHT))
+        {
+            // increase slot idler angle by 1 degree
+            if(idlerSlotAngles[active_extruder] < 180)
+            { 
+                idlerSlotAngles[active_extruder]++;
+                setIDL2pos(active_extruder);
+            }
         }
         else if (get_key_long(1 << KEY_MIDDLE) || get_key_press(1 << KEY_MIDDLE))
         {
@@ -90,141 +125,15 @@ void slotSetupMenuAngle()
 
 //! button          | action
 //! --------------- | ----------------------------------
-//! LEFT            | Decrease the bowden length by one step
-//! RIGHT           | Increase the bowden length by one step
-//! MIDDLE          | Exit slot setup option bowden length menu and return to slot setup menu
+//! LEFT            | Decrease the bowden length by one step (only if the filament is down the bowden tube)
+//! RIGHT           | Increase the bowden length by one step (only if the filament is down the bowden tube)
+//! MIDDLE          | Move the filament down or up the bowden tube to check the configured length
+//! MIDDLE (long)   | Exit slot setup option bowden length menu and return to slot setup menu
 void slotSetupMenuBowdenLen()
 {
-    bool _exit = false;
-    do 
-    {
-        set_led_state(active_extruder, LED_SLOT_SETUP_BOWDEN_LEN, 0);
+    set_led_state(active_extruder, LED_SLOT_SETUP_BOWDEN_LEN);
 
-        sendStringToPrinter((char*)"slot bowden len menu");
-        #warning Add functionality here
-
-        if (get_key_long(1 << KEY_MIDDLE) || get_key_press(1 << KEY_MIDDLE))
-        {
-            _exit = true;
-        }
-    } while (!_exit);
-}
-
-
-
-
-#if false
-
-void settings_bowden_length();
-
-//! @brief Show setup menu
-//!
-//! Items are selected by left and right buttons, activated by middle button.
-//!
-//! LED indication of states
-//!
-//! RG | RG | RG | RG | RG | meaning
-//! -- | -- | -- | -- | -- | ------------------------
-//! 11 | 00 | 00 | 00 | 01 | initial state, no action
-//! 11 | 00 | 00 | 01 | 00 | setup bowden length
-//! 11 | 00 | 01 | 00 | 00 | erase EEPROM if unlocked
-//! 11 | 01 | 00 | 00 | 00 | unlock EEPROM erase
-//! 11 | 00 | 00 | 00 | 00 | exit setup menu
-//!
-//! @n R - Red LED
-//! @n G - Green LED
-//! @n 1 - active
-//! @n 0 - inactive
-//!
-void setupMenu()
-{
-    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 1200);
-
-    uint8_t _menu = 0;
-    bool _exit = false;
-    bool eraseLocked = true;
-    inErrorState = true;
-
-    do 
-    {
-        set_led(_menu, COLOR_WHITE);
-
-        switch (buttonClicked()) 
-        {
-        case BTN_LEFT:
-            if (_menu > 0) 
-            {
-                _menu--;
-                _delay_ms(800);
-            }
-            break;
-        case BTN_MIDDLE:
-            switch (_menu) 
-            {
-            case 1:
-                if (!isFilamentLoaded()) 
-                {
-                    settings_bowden_length();
-                    _exit = true;
-                }
-                break;
-            case 2:
-                if (!eraseLocked)
-                {
-                    eepromEraseAll();
-                    _exit = true;
-                }
-                break;
-            case 3: // unlock erase
-                eraseLocked = false;
-                break;
-            case 4: // exit menu
-                set_positions(numSlots - 1, true);
-                _exit = true;
-                break;
-            }
-            break;
-        case BTN_RIGHT:
-            if (_menu < 4) 
-            {
-                _menu++;
-                _delay_ms(800);
-            }
-            break;
-        default:
-            break;
-        }
-    } while (!_exit);
-
-    set_led_state(0, LED_ENTER_SLOT_SETUP_MENU, 400);
-    set_led_state(active_extruder, LED_SLOT_SELECTED, 0);
-}
-
-//! @brief Set bowden length
-//!
-//! button         | action
-//! -------------- | ------
-//! Left   LOADED  | increase bowden length / feed more filament
-//! Left UNLOADED  | store bowden length to EEPROM and exit
-//! Right          | decrease bowden length / feed less filament
-//! Middle         | Load/Unload to recheck length
-//!
-//! This state is indicated by following LED pattern:
-//!
-//! RG | RG | RG | RG | RG
-//! -- | -- | -- | -- | --
-//! bb | 00 | 00 | 0b | 00
-//!
-//! @n R - Red LED
-//! @n G - Green LED
-//! @n 1 - active
-//! @n 0 - inactive
-//! @n b - blinking
-//!
-void settings_bowden_length()
-{
     // load filament to end of detached bowden tube to check correct length
-    set_positions(0, true);
     enum class S : uint8_t 
     {
         NotExtruded,
@@ -238,11 +147,90 @@ void settings_bowden_length()
     }
     do 
     {
-        _delay_ms(10);
-        switch (buttonClicked()) 
+        if (get_key_short(1 << KEY_LEFT))
         {
-        case BTN_LEFT:
+            switch (state)
+            {
+            case S::NotExtruded: break;
+            case S::Extruded:
+            bowdenLength.stepSize = BOWDEN_LENGTH_NORMAL_STEPS;
+                if (bowdenLength.increase())
+                {
+                    move_pulley(bowdenLength.stepSize);
+                    _delay_ms(200);
+                }
+                break;
+            default: break;
+            }
+        }
+        else if (get_key_rpt(1 << KEY_LEFT))
+        {
+            switch (state)
+            {
+            case S::NotExtruded: break;
+            case S::Extruded:
+                bowdenLength.stepSize = BOWDEN_LENGTH_BIG_STEPS;
+                if (bowdenLength.increase())
+                {
+                    move_pulley(bowdenLength.stepSize);
+                    _delay_ms(200);
+                }
+                break;
+            default: break;
+            }
+        }
+        else if (get_key_short(1 << KEY_RIGHT))
+        {
             switch (state) 
+            {
+            case S::NotExtruded: break;
+            case S::Extruded:
+            bowdenLength.stepSize = BOWDEN_LENGTH_NORMAL_STEPS;
+                if (bowdenLength.decrease())
+                {
+                    move_pulley(-bowdenLength.stepSize);
+                    _delay_ms(200);
+                }
+                break;
+            default: break;
+            }
+        }
+        else if (get_key_long(1 << KEY_RIGHT))
+        {
+            switch (state) 
+            {
+            case S::NotExtruded: break;
+            case S::Extruded:
+            bowdenLength.stepSize = BOWDEN_LENGTH_BIG_STEPS;
+                if (bowdenLength.decrease())
+                {
+                    move_pulley(-bowdenLength.stepSize);
+                    _delay_ms(200);
+                }
+                break;
+            default: break;
+            }
+        }
+        else if (get_key_short(1 << KEY_MIDDLE))
+        {
+            switch (state) 
+            {
+            case S::NotExtruded:
+                state = S::Extruded;
+                load_filament_withSensor(bowdenLength.m_length);
+                set_led_state(active_extruder, LED_SLOT_SETUP_BOWDEN_LEN);
+                break;
+            case S::Extruded:
+                state = S::NotExtruded;
+                unload_filament_forSetup(bowdenLength.m_length);
+                set_led_state(active_extruder, LED_SLOT_SETUP_BOWDEN_LEN);
+                break;
+            default: break;
+            }
+        }
+        else if (get_key_long(1 << KEY_MIDDLE))
+        {
+            switch (state)
             {
             case S::NotExtruded:
                 state = S::Done;
@@ -253,55 +241,9 @@ void settings_bowden_length()
                 bowdenLength.~BowdenLength();
                 BOWDEN_LENGTH = BowdenLength::get();
                 break;
-            case S::Extruded:
-                if (bowdenLength.increase())
-                {
-                    move_pulley(bowdenLength.stepSize);
-                    _delay_ms(200);
-                }
-                break;
-            default:
-                break;
+            case S::Extruded: break;
+            default: break;
             }
-            break;
-        case BTN_MIDDLE:
-            switch (state) 
-            {
-            case S::NotExtruded:
-                state = S::Extruded;
-                load_filament_withSensor(bowdenLength.m_length);
-                break;
-            case S::Extruded:
-                state = S::NotExtruded;
-                set_led(0, COLOR_WHITE);
-                set_led(numSlots - 1, COLOR_BLUE, false);
-                _delay_ms(50);
-                unload_filament_forSetup(bowdenLength.m_length);
-                break;
-            default:
-                break;
-            }
-            break;
-        case BTN_RIGHT:
-            switch (state) 
-            {
-            case S::NotExtruded:
-                break;
-            case S::Extruded:
-                if (bowdenLength.decrease())
-                {
-                    move_pulley(-bowdenLength.stepSize);
-                    _delay_ms(200);
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        default:
-            break;
         }
     } while (state != S::Done);
 }
-
-#endif

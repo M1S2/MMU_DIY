@@ -39,6 +39,6 @@ typedef enum
 void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet = true);
 void clr_leds(void);
 void led_blink(int slotNumber);
-void set_led_state(int slotNumber, led_states_t state, int timeForLedOperation_ms = 300);
+void set_led_state(int slotNumber, led_states_t state);
 
 #endif //_LED_H

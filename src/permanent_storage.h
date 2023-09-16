@@ -10,6 +10,10 @@ void permanentStorageInit();
 
 void eepromEraseAll();
 
+#define BOWDEN_LENGTH_NORMAL_STEPS  60u
+#define BOWDEN_LENGTH_BIG_STEPS     2 * BOWDEN_LENGTH_NORMAL_STEPS
+
+
 //! @brief Read manipulate and store bowden length
 //!
 //! Value is stored independently for each filament.
@@ -21,12 +25,12 @@ private:
 public:
     static uint16_t get();
     static uint16_t getFSensorSteps();
-    static const uint8_t stepSize = 38u; //!< increase()/decrease() bowden length step size
-    static const uint8_t stepSizeFSensor = 19u; //!< increase()/decrease() bowden length step size
+    static const uint8_t stepSizeFSensor = 30u; //!< increase()/decrease() bowden length step size
     bool increase();
     bool decrease();
     ~BowdenLength();
     uint16_t m_length;  //!< Selected filament bowden length
+    uint8_t stepSize; //!< increase()/decrease() bowden length step size
     BowdenLength();
 };
 

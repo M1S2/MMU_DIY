@@ -3,17 +3,6 @@
 Firmware for a self designed Multi Material Unit inspired by the Prusa MMU2S
 
 ## LED Indicators
-Each LED indication should have a unique length of e.g. 300ms. This is sometimes used as delay between button queries. 
-
-E.g. solid GREEN:\
-set_led GREEN\
-delay(300)
-
-E.g. blink GREEN:\
-set_led GREEN\
-delay(150)\
-clr_led()\
-delay(150)
 
 ### Slot LEDs
 - Slot selected (manual): GREEN
