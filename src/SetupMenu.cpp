@@ -1,7 +1,7 @@
 //! @file
 
-#include "Buttons.h"
 #include "SetupMenu.h"
+#include "Buttons.h"
 #include "main.h"
 #include "led.h"
 #include "mmctl.h"

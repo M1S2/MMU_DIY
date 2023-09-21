@@ -8,8 +8,6 @@
 #ifndef _SLOTDETECTION_H
 #define _SLOTDETECTION_H
 
-#include <inttypes.h>
-
 int detect_numSlots(void);
 
 #endif //_SLOTDETECTION_H

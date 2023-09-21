@@ -2,19 +2,15 @@
 
 #include "led.h"
 #include "config.h"
-#include <avr/io.h>
 #include "main.h"
 
 WS2812 LEDS(NUM_SLOTS_MAX);
 
-/**
- * @brief set_led
- * Enable LEDs, active high
- *
- * @param slotNumber: index of the slot for which the LED is set
- * @param color: color for the LED
- * @param clearAllBeforeSet: If true, execute the clr_leds() function before setting the LED
- */
+/// @brief Set the color of the requested LED
+///
+/// @param slotNumber: index of the slot for which the LED is set
+/// @param color: color for the LED
+/// @param clearAllBeforeSet: If true, execute the clr_leds() function before setting the LED
 void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet)
 {
     if(clearAllBeforeSet) { clr_leds(); }
@@ -23,6 +19,7 @@ void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet)
 	LEDS.sync(); // Sends the value to the LED
 }
 
+/// @brief Clear all available LEDs
 void clr_leds(void)
 {
 	for(int i = 0; i < NUM_SLOTS_MAX; i++)
@@ -32,18 +29,9 @@ void clr_leds(void)
 	LEDS.sync(); // Sends the value to the LED
 }
 
-void led_blink(int slotNumber)
-{
-    set_led(slotNumber, COLOR_GREEN);
-    _delay_ms(100);
-    clr_leds();
-    _delay_ms(50);
-    set_led(slotNumber, COLOR_GREEN);
-    _delay_ms(100);
-    clr_leds();
-    _delay_ms(50);
-}
-
+/// @brief Set the LED at the slotNumber (or for some states all LEDs) to a specific pattern depending on the state parameter
+/// @param slotNumber Slot number of the LED that should be set (not used by all states!)
+/// @param state State describing the pattern shown by the LED (static color, blinking, ...)
 void set_led_state(int slotNumber, led_states_t state)
 {
     switch(state)

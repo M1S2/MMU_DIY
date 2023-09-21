@@ -19,21 +19,11 @@
 #include <avr/wdt.h>
 #include <inttypes.h>
 
-void manual_extruder_selector();
-
 // signals from interrupt to main loop
-extern bool MMU2SLoading;
 extern bool inErrorState;
 extern int numSlots;
-void fixTheProblem(bool showPrevious = false);
-void fixIdlCrash(void);
-
 extern long startWakeTime;
 
-typedef enum eFault
-{
-    FAULT_IDLER_INIT_0, FAULT_IDLER_INIT_1, FAULT_IDLER_INIT_2,
-    FAULT_PULLEY_INIT_0, FAULT_PULLEY_INIT_1, FAULT_PULLEY_INIT_2,
-} Fault;
+void fixTheProblem(bool showPrevious = false);
 
 #endif //_MAIN_H

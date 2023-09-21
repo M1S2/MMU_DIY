@@ -3,40 +3,27 @@
 #include "main.h"
 
 // public variables:
-bool MMU2SLoading = false;
-bool m600RunoutChanging = false;
 bool inErrorState = false;
 long startWakeTime;
 int numSlots;
 void process_commands(void);
 
-//! LED indication of states
-//!
-//! Slot0   | Slot1   | Slot2   | Slot3   | Slot4   | meaning
-//! ------- | ------- | ------- | ------- | ------- | -----------------------
-//! on/off  | on/off  | on/off  | on/off  | on/off  | Show the number of slots (number of on LEDs)
-//! blink   | 0       | 0       | 0       | 0       | EEPROM initialized
-//! 0       | blink   | 0       | 0       | 0       | UART initialized
-//! 0       | 0       | blink   | 0       | 0       | Idler/Stepper initialized
-//!
+/// @brief Setup all necessary pins and parts of the hardware
 void setup()
 {
-    // Setup all button pins to be inputs and enable the pullups, enable the button timer
-    pinMode(PIN_BTN_LEFT, INPUT);
-    pinMode(PIN_BTN_MIDDLE, INPUT);
-    pinMode(PIN_BTN_RIGHT, INPUT);
-    pullup(PIN_BTN_LEFT);
-    pullup(PIN_BTN_MIDDLE);
-    pullup(PIN_BTN_RIGHT);
-    initButtonTimer();
-
+    // init debug LED pin as output and activate LED during init
     pinMode(PIN_LED_DEBUG, OUTPUT);
     digitalWrite(PIN_LED_DEBUG, HIGH);
 
-    LEDS.setOutput(PIN_LED_DIN);
-    PORTA |= 0x02;  // Set Button ADC Pin High
-    servoIdler.attach(PIN_IDL_SERVO);
+    // init button part
+    initButtonPins();
+    initButtonTimer();
 
+    // init UART
+    sei();
+    initUart();
+
+    LEDS.setOutput(PIN_LED_DIN);
     // Detect the number of connected slot PCBs and show it
     numSlots = detect_numSlots();
     for(int i = 0; i < numSlots; i++)
@@ -46,27 +33,24 @@ void setup()
     _delay_ms(1000);
     clr_leds();
 
-    DDRC |= (1 << PC4) | (1 << PC5) | (1 << PC6) | (1 << PC7);      // Set stepper and servo pins as outputs
-
+    // Init the EEPROM and load the active_extruder from the EEPROM
     permanentStorageInit();
-    // Load the active_extruder from the EEPROM
     uint8_t filament = 0;
     FilamentLoaded::get(filament);
     active_extruder = filament;
     if(active_extruder == numSlots) { active_extruder = numSlots - 1; }
     startWakeTime = millis();
-    led_blink(0);
-    
-    sei();
-    initUart();
-    led_blink(1);
 
-    set_positions(active_extruder);     // Move to previous active extruder
+    // init servo and stepper part
+    DDRC |= (1 << PC4) | (1 << PC5) | (1 << PC6) | (1 << PC7);      // Set stepper and servo pins as outputs
+    servoIdler.attach(PIN_IDL_SERVO);
+    set_positions(active_extruder);                                 // Move to previous active extruder
     disableStepper();
-    led_blink(2);
 
+    // send "start" string to the printer to signal that the MMU is alive
     sendStringToPrinter((char*)"start");
 
+    // turn off debug LED at end of setup part
     digitalWrite(PIN_LED_DEBUG, LOW);
 }
 
@@ -80,6 +64,7 @@ void setup()
 void eepromDeleteMenu()
 {
     bool _exit = false;
+    long enterEepromDeleteMenuTime = millis();
     do 
     {
         set_led_state(0, LED_DELETE_EEPROM_MENU);
@@ -88,16 +73,17 @@ void eepromDeleteMenu()
         {
             _exit = true;
         }
+        else if (((millis() - enterEepromDeleteMenuTime) > 5000))   // The user has 5 seconds time to delete the EEPROM after entering the menu. After that time the menu is exited automatically and must be reentered.
+        {
+            _exit = true;
+        }
         else if (get_key_long(1 << KEY_MIDDLE))
         {
             // Delete EEPROM
-            #warning Implement EEPROM delete function
+            eepromEraseAll();
             set_led_state(0, LED_DELETE_EEPROM_FINISHED);
             _exit = true;
         }
-
-#warning Implement exit from EEPROM delete menu after Timeout
-
     } while (!_exit);
 }
 
@@ -155,16 +141,8 @@ void loop()
     if (!isPrinting && !isEjected) 
     {
         set_led_state(active_extruder, LED_SLOT_SELECTED);
-
-        if (!isFilamentLoaded()) 
-        {
-            engage_filament_pulley(true);
-            baseMenu();
-        } 
-        else 
-        {
-            /* no manual extruder selection supported when filament is loaded */
-        }
+        engage_filament_pulley(true);
+        baseMenu();
     } 
     else if (isEjected) 
     {
@@ -176,6 +154,7 @@ void loop()
         }
     }
 
+    // Disable the steppers if they were inactive for some time and the filament is not loaded and no print is running
     if (((millis() - startWakeTime) > WAKE_TIMER) && !isFilamentLoaded() && !isPrinting)
     {
         disableStepper();
@@ -185,7 +164,7 @@ void loop()
 void process_commands(void)
 {
     cli();
-    // Copy volitale vars as local
+    // Copy volatile vars as local
     unsigned char tData1 = rxData1;
     unsigned char tData2 = rxData2;
     unsigned char tData3 = rxData3;
@@ -206,8 +185,7 @@ void process_commands(void)
         //Tx Tool Change CMD Received
         if ((tData2 - '0') < numSlots) 
         {
-            m600RunoutChanging = false;
-            MMU2SLoading = true;
+            isPrinting = true;
             toolChange(tData2 - '0');
             sendStringToPrinter(OK);
         }
@@ -293,7 +271,6 @@ void process_commands(void)
         // Ex Eject Filament X CMD Received
         if ((tData2 - '0') < numSlots) // Ex: eject filament
         {
-            m600RunoutChanging = true;
             eject_filament(tData2 - '0');
             sendStringToPrinter(OK);
         }
@@ -313,7 +290,7 @@ void fixTheProblem(bool showPrevious)
 {
     bool previouslyEngaged = isIdlerEngaged;
 
-    engage_filament_pulley(false);                    // park the idler stepper motor
+    engage_filament_pulley(false);                    // park the idler 
 
     inErrorState = true;
 
@@ -404,24 +381,4 @@ void fixTheProblem(bool showPrevious)
     FilamentLoaded::set(active_extruder);
 
     engage_filament_pulley(previouslyEngaged);
-}
-
-void fixIdlCrash(void) 
-{
-    inErrorState = true;
-
-    while (!get_key_short(1 << KEY_MIDDLE)) 
-    {
-        //  wait until key is entered to proceed  (this is to allow for operator intervention)
-        if (isFilamentLoaded()) 
-        {
-            set_led_state(active_extruder, LED_SLOT_ERROR_FILAMENT_PRESENT);
-        } 
-        else
-        {
-            set_led_state(active_extruder, LED_SLOT_ERROR_NO_FILAMENT);
-        }
-    }
-    inErrorState = false;
-    setIDL2pos(active_extruder);
 }

@@ -8,7 +8,6 @@
 #ifndef _LED_H
 #define _LED_H
 
-#include <inttypes.h>
 #include "light_ws2812-2.2/WS2812.h"
 
 const cRGB COLOR_RED =    { /*g*/0,   /*r*/64,  /*b*/0};
@@ -38,7 +37,6 @@ typedef enum
 
 void set_led(int slotNumber, cRGB color, bool clearAllBeforeSet = true);
 void clr_leds(void);
-void led_blink(int slotNumber);
 void set_led_state(int slotNumber, led_states_t state);
 
 #endif //_LED_H

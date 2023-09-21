@@ -1,7 +1,8 @@
 // uart.cpp
 #include "uart.h"
 #include "config.h"
-#include "main.h"
+#include <avr/interrupt.h>
+#include "Arduino.h"
 
 volatile unsigned char readRxBuffer, rxData1 = 0, rxData2 = 0, rxData3 = 0;
 volatile bool confirmedPayload = false, IR_SENSOR = false;

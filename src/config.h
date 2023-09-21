@@ -3,7 +3,7 @@
 #define FW_VERSION      402 // example: 103 means version 1.0.3
 #define FW_BUILDNR      380 // number of commits in 'master'
 
-#define WAKE_TIMER      300000        // 5m
+#define WAKE_TIMER      300000        // 5 minutes
 
 //Button configuration
 #define BTN_RIGHT_ADC_VALUE     14      // Button connects Pin to GND directly
@@ -30,13 +30,14 @@
 #define PIN_BTN_RIGHT   32
 #else
 #define PIN_LED_DIN     PIN_PD7
-#define PIN_IDL_SERVO   PIN_PC4
+#define PIN_IDL_SERVO   PIN_PC4     // Caution: when this pin is changed, the correct pin must be set as output in the setup() method too
 #define PIN_LED_DEBUG   PIN_PD2 
 #define PIN_BTN_LEFT    PIN_PD3
 #define PIN_BTN_MIDDLE  PIN_PD4
 #define PIN_BTN_RIGHT   PIN_PD5
 #endif
 
+// Caution: when these pins are changed, the correct pins must be set as outputs in the setup() method too
 #define PIN_PUL_DIR_HIGH (PORTC |= 0x20)        // Pin PC5
 #define PIN_PUL_DIR_LOW (PORTC &= ~0x20)        // Pin PC5
 #define PIN_PUL_STP_HIGH (PORTC |= 0x40)        // Pin PC6
@@ -46,8 +47,6 @@
 
 #define PIN_FINDA       A0
 #define isFilamentLoaded() digitalRead(PIN_FINDA)
-
-#define PIN_BUTTONS     A1
 #define PIN_R_DET       A2                      // Pin for detecting the number of available slots
 
 // speeds and accelerations

@@ -5,10 +5,8 @@
 #include <string.h>
 #include <avr/io.h>
 #include "led.h"
-#include "spi.h"
 #include "mmctl.h"
 #include "motion.h"
-#include "Buttons.h"
 #include "config.h"
 #include "uart.h"
 
@@ -75,8 +73,6 @@ bool feed_filament(void)
 
 void toolChange(int new_extruder)
 {
-    isPrinting = true;
-
     set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE);
 
     previous_extruder = active_extruder;
@@ -235,7 +231,7 @@ void unload_filament_withSensor(uint8_t extruder)
             {
                 fixTheProblem();
             }
-            set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE);
+            set_led_state(extruder, LED_SLOT_OPERATION_ACTIVE);
         }
     }
     else
@@ -249,7 +245,7 @@ void unload_filament_withSensor(uint8_t extruder)
         {
             fixTheProblem();
         }
-        set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE);
+        set_led_state(extruder, LED_SLOT_OPERATION_ACTIVE);
     }
     disableStepper();
 }
@@ -289,7 +285,7 @@ void unload_filament_forSetup(uint16_t distance, uint8_t extruder)
             {
                 fixTheProblem();
             }
-            set_led_state(active_extruder, LED_SLOT_OPERATION_ACTIVE);
+            set_led_state(extruder, LED_SLOT_OPERATION_ACTIVE);
         }
     }
     

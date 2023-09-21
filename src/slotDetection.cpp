@@ -2,10 +2,8 @@
 
 #include "slotDetection.h"
 #include "config.h"
-#include <avr/io.h>
-#include "main.h"
-
-#include "uart.h"
+#include <stdint.h>
+#include <Arduino.h>
 
 /**
  * @brief Detect the number of available slot

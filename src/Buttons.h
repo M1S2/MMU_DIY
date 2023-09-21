@@ -4,7 +4,6 @@
 #define _BUTTONS_H
 
 #include <stdint.h>
-#include "Arduino.h"
 
 // !!! Key Pins must already be set as inputs and Pull-Ups must be enabled !!!
 #define KEY_PIN         PIND
@@ -18,7 +17,9 @@
 #define REPEAT_START    50					// after 500ms
 #define REPEAT_NEXT     50					// every 500ms
 
+void initButtonPins();
 void initButtonTimer();
+
 void debounce_timer_interrupt();
 uint8_t get_key_press(uint8_t key_mask);
 uint8_t get_key_rpt(uint8_t key_mask);
