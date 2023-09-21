@@ -34,16 +34,16 @@ void initButtonPins()
     pullup(PIN_BTN_RIGHT);
 }
 
-/// @brief Init the 8-bit Timer0 used for button handling
+/// @brief Init the 8-bit Timer2 used for button handling
 void initButtonTimer()
 {
-    TCCR0 = (1 << CS02) | (1 << CS00) | (1 << WGM01);       // Set Prescaler to 1024, this implicitly enables the timer; set the timer to CTC mode (clear on compare match)
-    OCR0 = (uint8_t)((F_CPU / (float)1024) * 10e-3 + 0.5);  // Set output compare register to trigger after 10 ms
-    TIMSK |= (1 << OCIE0);                                  // Enable compare match interrupt
+	TCCR2 = (1 << CS22) | (1 << CS21) | (1 << CS20) | (1 << WGM21);	// Set Prescaler to 1024, this implicitly enables the timer; set the timer to CTC mode (clear on compare match)
+    OCR2 = (uint8_t)((F_CPU / (float)1024) * 10e-3 + 0.5);  		// Set output compare register to trigger after 10 ms
+    TIMSK |= (1 << OCIE2);                                  		// Enable compare match interrupt
 }
 
-/// @brief ISR for the Timer0 Compare match. This timer is used for button handling.
-ISR(TIMER0_COMP_vect)
+/// @brief ISR for the Timer2 Compare match. This timer is used for button handling.
+ISR(TIMER2_COMP_vect)
 {
 	debounce_timer_interrupt();
 }

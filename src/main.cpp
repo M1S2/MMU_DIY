@@ -73,7 +73,7 @@ void eepromDeleteMenu()
         {
             _exit = true;
         }
-        else if (((millis() - enterEepromDeleteMenuTime) > 5000))   // The user has 5 seconds time to delete the EEPROM after entering the menu. After that time the menu is exited automatically and must be reentered.
+        else if (((millis() - enterEepromDeleteMenuTime) > 10000))   // The user has 10 seconds time to delete the EEPROM after entering the menu. After that time the menu is exited automatically and must be reentered.
         {
             _exit = true;
         }

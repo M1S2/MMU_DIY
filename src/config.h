@@ -59,7 +59,7 @@
 #define TYPE_0_MAX_SPEED_PUL                  4000  //  S/S
 #define TYPE_0_ACC_FEED_PUL                   5000  //  S/S/S
 #define TYPE_0_FILAMENT_PARKING_STEPS         -670  //  STEPS
-#define TYPE_0_FSENSOR_SENSE_STEPS            1500  //  STEPS
+#define TYPE_0_FSENSOR_SENSE_STEPS            5000  //1500  //  STEPS
 #define TYPE_0_FEED_SPEED_PUL                  760  //  S/S
 #define TYPE_0_L2EXSTAGEONE                    350  //  S/S
 #define TYPE_0_L2EXSTAGETWO                    440  //  S/S
