@@ -42,20 +42,54 @@ void move_pulley(int steps, uint16_t speed)
 }
 
 /**
- * @brief set_pulley_direction
+ * @brief set_pulley_direction.
+ * If one of the INVERT_FEEDER_DIRECTION_EVEN_TOOL_NUMBERS or INVERT_FEEDER_DIRECTION_ODD_TOOL_NUMBERS defines are set, this depends also on the active_extruder.
  * @param steps, positive (push) or negative (pull)
  * @return abs(steps)
  */
 uint16_t set_pulley_direction(int steps)
 {
+    bool is_even_tool_number = ((active_extruder % 2) == 0);
+
     if (steps < 0)
     {
         steps = steps * -1;
-        PIN_PUL_DIR_HIGH;
+
+        if(is_even_tool_number)
+        {
+            #ifdef INVERT_FEEDER_DIRECTION_EVEN_TOOL_NUMBERS
+                PIN_PUL_DIR_LOW;
+            #else
+                PIN_PUL_DIR_HIGH;
+            #endif
+        }
+        else
+        {
+            #ifdef INVERT_FEEDER_DIRECTION_ODD_TOOL_NUMBERS
+                PIN_PUL_DIR_LOW;
+            #else
+                PIN_PUL_DIR_HIGH;
+            #endif
+        }
     }
     else
     {
-        PIN_PUL_DIR_LOW;
+        if(is_even_tool_number)
+        {
+            #ifdef INVERT_FEEDER_DIRECTION_EVEN_TOOL_NUMBERS
+                PIN_PUL_DIR_HIGH;
+            #else
+                PIN_PUL_DIR_LOW;
+            #endif
+        }
+        else
+        {
+            #ifdef INVERT_FEEDER_DIRECTION_ODD_TOOL_NUMBERS
+                PIN_PUL_DIR_HIGH;
+            #else
+                PIN_PUL_DIR_LOW;
+            #endif
+        }
     }
     return steps;
 }

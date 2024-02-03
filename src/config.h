@@ -49,9 +49,11 @@
 #define isFilamentLoaded() digitalRead(PIN_FINDA)
 #define PIN_R_DET       A2                      // Pin for detecting the number of available slots
 
-// speeds and accelerations
+// Motion
 #define GLOBAL_ACC                          2000 // micro steps / s²
 #define MIN_SPEED_PUL                       100
+//#define INVERT_FEEDER_DIRECTION_EVEN_TOOL_NUMBERS       // Enable this define, to invert the direction of the feeder stepper for all even tool numbers (T0, T2, T4, ...)
+//#define INVERT_FEEDER_DIRECTION_ODD_TOOL_NUMBERS        // Enable this define, to invert the direction of the feeder stepper for all odd tool numbers (T1, T3, T5, ...)
 
 // Type Definitions
 // filament types (0: default; 1:flex; 2: PVA)
@@ -86,8 +88,6 @@
 // Calibration
 #define PULLEY_EJECT_STEPS          2000
 #define IDLER_SLOT_ANGLES_DEFAULT   { 0, 1 * 30, 2 * 30, 3 * 30, 4 * 30 }
-#define IDLER_NEXT_FILAMENT_ANGLE   -45     // angle that the idler must rotate between two consecutive filaments
-#define IDLER_PARK_ANGLE_ABSOLUTE   180     // absolute angle in degree at which the idler is parked. The next filament angle is calculated from this point.
 
 // CONFIG
 //#define _CONFIG_H
