@@ -1,5 +1,7 @@
 # MMU_DIY
 
+![Status](https://img.shields.io/badge/status-not%20finished%20and%20not%20maintained%20anymore-red)
+
 Firmware for a self designed Multi Material Unit inspired by the Prusa MMU2S
 
 ## LED Indicators
